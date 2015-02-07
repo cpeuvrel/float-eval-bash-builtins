@@ -53,7 +53,7 @@ double float_eval(char* str)
         }
 
         if (! *str)
-           break;
+            break;
     }
 
     free(ast);
