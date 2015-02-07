@@ -19,8 +19,7 @@
 
 int main(int argc, const char *argv[])
 {
-    double res = float_eval("1+3*4");
-    printf("Hello World : %f !\n", res);
+    float_eval("1+3*4+2+8");
     return 0;
 }
 
