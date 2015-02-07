@@ -22,6 +22,6 @@
 #include <stdlib.h>
 
 double float_eval(char* str);
-static void compute_curr(char* curr, int *pos, double *val, int *op);
+void tokenify(char* curr, binTree* ast, char op);
 
 #endif /* end of include guard: FLOAT-EVAL_H */
