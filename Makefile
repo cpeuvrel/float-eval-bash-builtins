@@ -9,7 +9,7 @@ all : float-eval.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean :
-	rm -f *.o
+	rm -f *.o core.*
 
 mrproper : clean
 	rm -f float-eval
