@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "binTree.h"
+
 double float_eval(char* str);
 void tokenify(char* curr, binTree* ast, char op);
 

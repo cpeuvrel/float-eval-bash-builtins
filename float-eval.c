@@ -26,7 +26,7 @@ int main(int argc, const char *argv[])
 double float_eval(char* str)
 {
     int pos_curr = 0;
-    char curr[64] = {0};
+    char curr[SIZE_SLOT] = {0};
 
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
