@@ -64,6 +64,9 @@ double float_eval(char* str)
 void tokenify(char* curr, binTree* ast, char op)
 {
     switch (op) {
+        case '/':
+        case '*':
+        case '-':
         case '+':
             sprintf(findFirstEmpty(ast)->val, "%c",op);
             sprintf(findFirstEmpty(ast)->val, "%s", curr);
