@@ -66,27 +66,15 @@ double float_eval(char* str)
     return curr_val;
 }
 
-static void compute_curr(char* curr, int *pos, double *val, int *op)
+void tokenify(char* curr, binTree* ast, char op)
 {
-    double temp = 0;
-    curr[*pos] = '\0';
-    *pos = 0;
-    temp = atof(curr);
-
-    switch (*op) {
-        case 1:
-            *val += temp;
+    switch (op) {
+        case '+':
+            sprintf(findFirstEmpty(ast)->val, "%c",op);
+            sprintf(findFirstEmpty(ast)->val, "%s", curr);
             break;
-        case 2:
-            *val -= temp;
+        case '\0':
+            sprintf(findFirstEmpty(ast)->val, "%s", curr);
             break;
-        case 3:
-            *val *= temp;
-            break;
-        case 4:
-            *val /= temp;
-            break;
-        default:
-            *val = temp;
     }
 }
