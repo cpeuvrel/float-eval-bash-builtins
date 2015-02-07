@@ -25,9 +25,11 @@ int main(int argc, const char *argv[])
 
 double float_eval(char* str)
 {
-    int curr_pos = 0, op = 0;
+    int pos_curr = 0;
     char curr[64] = {0};
-    double curr_val = 0;
+
+    binTree *ast = malloc(sizeof(binTree));
+    initBinTree(ast);
 
     for (;;str++) {
         switch (*str) {
@@ -36,34 +38,27 @@ double float_eval(char* str)
                 continue;
         }
 
-        if ((*str >= '0' && *str <= '9') || *str == '.') {
-            curr[curr_pos++] = *str;
+        if ((*str >= '0' && *str <= '9') ||
+                *str == '.' ||
+                *str == '*' ||
+                *str == '/' ||
+                *str == '(' ||
+                *str == ')' ) {
+            curr[pos_curr++] = *str;
         }
         else {
-            compute_curr(curr, &curr_pos, &curr_val, &op);
-
-            switch (*str) {
-                case '+':
-                    op = 1;
-                    continue;
-                case '-':
-                    op = 2;
-                    continue;
-                case '*':
-                    op = 3;
-                    continue;
-                case '/':
-                    op = 4;
-                    continue;
-            }
+            curr[pos_curr] = '\0';
+            tokenify(curr, ast, *str);
+            pos_curr = 0 ;
         }
-
-        printf("%f\n", curr_val);
 
         if (! *str)
            break;
     }
-    return curr_val;
+
+    free(ast);
+
+    return 0;
 }
 
 void tokenify(char* curr, binTree* ast, char op)
