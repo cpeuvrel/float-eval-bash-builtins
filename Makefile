@@ -2,7 +2,7 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all : float-eval.o
+all : float-eval.o binTree.o
 	$(CC) $(CFLAGS) $^ -o float-eval
 
 %.o : %.c
