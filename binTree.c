@@ -83,7 +83,8 @@ binTree* findFirstEmpty(binTree* t)
 
 static binTree* findFirstLeftEmpty(binTree* t)
 {
-    while (t->next1 && isOp(t->next1->val[0]))
+    while (t->next1 && isOp(t->next1->val[0]) &&
+            ((t->next1->next2 && isOp(t->next1->next2->val[0])) || ! t->next1->next2 ))
         t = t->next1;
 
     if (t->next2 && isOp(t->next2->val[0]))
