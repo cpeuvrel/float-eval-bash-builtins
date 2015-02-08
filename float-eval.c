@@ -16,6 +16,7 @@
  */
 
 #include "float-eval.h"
+static void tokenifyStart(char *str, binTree* ast);
 
 int main(int argc, const char *argv[])
 {
@@ -25,11 +26,21 @@ int main(int argc, const char *argv[])
 
 double float_eval(char* str)
 {
-    int pos_curr = 0, parenthesis = 0;
-    char curr[SIZE_SLOT] = {0};
-
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
+
+    tokenifyStart(str, ast);
+
+    free(ast);
+
+    return 0;
+}
+
+static void tokenifyStart(char *str, binTree* ast)
+{
+    printf("START : %s\n", str);
+    int pos_curr = 0, parenthesis = 0;
+    char curr[SIZE_SLOT] = {0};
 
     for (;;str++) {
         switch (*str) {
@@ -60,10 +71,6 @@ double float_eval(char* str)
         if (! *str)
             break;
     }
-
-    free(ast);
-
-    return 0;
 }
 
 void tokenify(char* str, binTree* ast, char op)
