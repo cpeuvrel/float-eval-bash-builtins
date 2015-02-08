@@ -146,7 +146,7 @@ void tokenify(char* str, binTree* ast, char op)
 
                 if (*str == ')')
                     tokenifyStart(1+curr, fst, !op_found);
-                else
+                else if (curr[0])
                     tokenify(curr, fst, *str);
 
                 pos_curr = 0 ;
