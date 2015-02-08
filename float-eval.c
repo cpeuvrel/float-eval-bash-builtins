@@ -25,7 +25,7 @@ int main(int argc, const char *argv[])
 
 double float_eval(char* str)
 {
-    int pos_curr = 0;
+    int pos_curr = 0, parenthesis = 0;
     char curr[SIZE_SLOT] = {0};
 
     binTree *ast = malloc(sizeof(binTree));
@@ -33,12 +33,18 @@ double float_eval(char* str)
 
     for (;;str++) {
         switch (*str) {
+            case '(':
+                parenthesis++;
+                break;
+            case ')':
+                parenthesis--;
+                break;
             case '\t':
             case ' ':
                 continue;
         }
 
-        if ((*str >= '0' && *str <= '9') ||
+        if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
                 *str == '.' ||
                 *str == '*' ||
                 *str == '/' ||
@@ -63,7 +69,7 @@ double float_eval(char* str)
 
 void tokenify(char* str, binTree* ast, char op)
 {
-    int pos_curr = 0;
+    int pos_curr = 0, parenthesis = 0;
     char curr[SIZE_SLOT] = {0};
     binTree *fst = findFirstEmpty(ast);
 
@@ -75,7 +81,15 @@ void tokenify(char* str, binTree* ast, char op)
         sprintf(fst->val, "%c",op);
 
         for (;;str++) {
-            if ((*str >= '0' && *str <= '9') ||
+            switch (*str) {
+                case '(':
+                    parenthesis++;
+                    break;
+                case ')':
+                    parenthesis--;
+            }
+
+            if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
                     *str == '.' ||
                     *str == '(' ||
                     *str == ')' ) {
