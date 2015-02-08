@@ -60,8 +60,17 @@ binTree* findFirstEmpty(binTree* t)
     binTree *res = t, *new = malloc(sizeof(binTree));
     initBinTree(new);
 
-    while (res->next1 && res->next2)
-       res = res->next2; 
+
+    while ((res->next1 && res->next2) || (res->next1 && ! res->next1->next2 &&
+                isOp(res->next1->val[0]))){
+
+        if (! res->next1->next2 && isOp(res->next1->val[0])) {
+            res = res->next1;
+        }
+        else {
+            res = res->next2;
+        }
+    }
 
     if (res->next1)
         res->next2 = new;
