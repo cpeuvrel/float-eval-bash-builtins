@@ -59,7 +59,6 @@ static double computeAst(binTree* ast)
 
 static void tokenifyStart(char *str, binTree* ast)
 {
-    printf("START : %s\n", str);
     int pos_curr = 0, parenthesis = 0;
     char curr[SIZE_SLOT] = {0};
 
