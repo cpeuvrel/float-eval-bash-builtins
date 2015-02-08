@@ -29,7 +29,7 @@ int main(int argc, const char *argv[])
     char str[SIZE_SLOT] = "";
     strncpy(str, argv[1], SIZE_SLOT);
 
-    printf("%f !\n", float_eval(str));
+    printf("%f\n", float_eval(str));
     return 0;
 }
 
