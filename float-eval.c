@@ -17,6 +17,7 @@
 
 #include "float-eval.h"
 static void tokenifyStart(char *str, binTree* ast);
+static double computeAst(binTree* ast);
 
 int main(int argc, const char *argv[])
 {
@@ -26,13 +27,33 @@ int main(int argc, const char *argv[])
 
 double float_eval(char* str)
 {
+    double res = 0;
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
     tokenifyStart(str, ast);
 
+    res = computeAst(ast);
     free(ast);
 
+    return res;
+}
+
+static double computeAst(binTree* ast)
+{
+    if (! isOp(ast->val[0]))
+        return atof(ast->val);
+
+    switch (ast->val[0]) {
+        case '+':
+            return computeAst(ast->next1) + computeAst(ast->next2);
+        case '-':
+            return computeAst(ast->next1) - computeAst(ast->next2);
+        case '*':
+            return computeAst(ast->next1) * computeAst(ast->next2);
+        case '/':
+            return computeAst(ast->next1) / computeAst(ast->next2);
+    }
     return 0;
 }
 
