@@ -67,30 +67,30 @@ static double computeAst(binTree* ast)
 
 static void tokenifyStart(char *str, binTree* ast, int lookMult)
 {
-    int pos_curr = 0, parenthesis = 0, op_found = 0;
+    int pos_curr = 0, parentheses = 0, op_found = 0;
     char curr[SIZE_SLOT] = {0};
 
-    int beginParenthesis = str[0] == '(' ? 1 : 0;
+    int beginParentheses = str[0] == '(' ? 1 : 0;
 
     for (;;str++) {
         switch (*str) {
             case '(':
-                parenthesis++;
+                parentheses++;
                 break;
             case ')':
-                parenthesis--;
+                parentheses--;
                 break;
             case '\t':
             case ' ':
                 continue;
         }
 
-        if (!lookMult && parenthesis == 0 && (*str == '*' || * str == '/'))
+        if (!lookMult && parentheses == 0 && (*str == '*' || * str == '/'))
             op_found++;
 
-        if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
+        if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
-                (*str == ')' && (!beginParenthesis || *(str+1))) ||
+                (*str == ')' && (!beginParentheses || *(str+1))) ||
                 (!lookMult && (*str == '*' ||
                 *str == '/' ))) {
             curr[pos_curr++] = *str;
@@ -98,7 +98,7 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
         else {
             curr[pos_curr] = '\0';
 
-            if (beginParenthesis && *str == ')')
+            if (beginParentheses && *str == ')')
                 tokenifyStart(1+curr, ast, 0);
             else if (*str == '\0' && op_found)
                 tokenifyStart(curr, ast, op_found);
@@ -115,13 +115,13 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
 
 void tokenify(char* str, binTree* ast, char op)
 {
-    int pos_curr = 0, parenthesis = 0, op_found = 0;
+    int pos_curr = 0, parentheses = 0, op_found = 0;
     char curr[SIZE_SLOT] = {0};
     binTree *fst = findFirstEmpty(ast);
 
-    int beginParenthesis = str[0] == '(' ? 1 : 0;
+    int beginParentheses = str[0] == '(' ? 1 : 0;
 
-    if (op == '\0' && ! beginParenthesis) {
+    if (op == '\0' && ! beginParentheses) {
         sprintf(fst->val, "%s", str);
     }
     else {
@@ -130,17 +130,17 @@ void tokenify(char* str, binTree* ast, char op)
         for (;;str++) {
             switch (*str) {
                 case '(':
-                    parenthesis++;
+                    parentheses++;
                     break;
                 case ')':
-                    parenthesis--;
+                    parentheses--;
             }
 
-            if (parenthesis == 1 && (*str == '+' || * str == '-'))
+            if (parentheses == 1 && (*str == '+' || * str == '-'))
                 op_found++;
 
-            if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
-                    (!beginParenthesis && *str == ')') ||
+            if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
+                    (!beginParentheses && *str == ')') ||
                     *str == '.' ) {
                 curr[pos_curr++] = *str;
             }
