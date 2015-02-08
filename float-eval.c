@@ -96,13 +96,17 @@ void tokenify(char* str, binTree* ast, char op)
             }
 
             if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
-                    *str == '.' ||
-                    *str == ')' ) {
+                    *str == '.' ) {
                 curr[pos_curr++] = *str;
             }
             else {
                 curr[pos_curr] = '\0';
-                tokenify(curr, fst, *str);
+
+                if (*str == ')')
+                    tokenifyStart(1+curr, fst);
+                else
+                    tokenify(curr, fst, *str);
+
                 pos_curr = 0 ;
             }
 
