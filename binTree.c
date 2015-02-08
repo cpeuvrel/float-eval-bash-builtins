@@ -64,6 +64,8 @@ binTree* findFirstEmpty(binTree* t)
     while (res->val[0] && ! (tmp = findFirstLeftEmpty(res)) && res->next2)
         res = res->next2;
 
+    if (! res->val[0])
+        return res;
 
     if (tmp){
         if (tmp->next1)
