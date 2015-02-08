@@ -48,7 +48,6 @@ double float_eval(char* str)
                 *str == '.' ||
                 *str == '*' ||
                 *str == '/' ||
-                *str == '(' ||
                 *str == ')' ) {
             curr[pos_curr++] = *str;
         }
@@ -91,7 +90,6 @@ void tokenify(char* str, binTree* ast, char op)
 
             if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
                     *str == '.' ||
-                    *str == '(' ||
                     *str == ')' ) {
                 curr[pos_curr++] = *str;
             }
