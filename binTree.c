@@ -70,3 +70,15 @@ binTree* findFirstEmpty(binTree* t)
 
     return new;
 }
+
+int isOp(char str)
+{
+    switch (str) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+            return 1;
+    }
+    return 0;
+}
