@@ -63,16 +63,33 @@ double float_eval(char* str)
 
 void tokenify(char* str, binTree* ast, char op)
 {
-    switch (op) {
-        case '/':
-        case '*':
-        case '-':
-        case '+':
-            sprintf(findFirstEmpty(ast)->val, "%c",op);
-            sprintf(findFirstEmpty(ast)->val, "%s", str);
-            break;
-        case '\0':
-            sprintf(findFirstEmpty(ast)->val, "%s", str);
-            break;
+    int pos_curr = 0;
+    char curr[SIZE_SLOT] = {0};
+    binTree *fst = findFirstEmpty(ast);
+
+
+    if (op == '\0') {
+        sprintf(fst->val, "%s", str);
+    }
+    else {
+        sprintf(fst->val, "%c",op);
+
+        for (;;str++) {
+            if ((*str >= '0' && *str <= '9') ||
+                    *str == '.' ||
+                    *str == '(' ||
+                    *str == ')' ) {
+                curr[pos_curr++] = *str;
+            }
+            else {
+                curr[pos_curr] = '\0';
+                tokenify(curr, fst, *str);
+                pos_curr = 0 ;
+            }
+
+            if (! *str)
+                break;
+        }
+
     }
 }
