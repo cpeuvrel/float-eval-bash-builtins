@@ -16,7 +16,7 @@
  */
 
 #include "float-eval.h"
-static void tokenifyStart(char *str, binTree* ast);
+static void tokenifyStart(char *str, binTree* ast, int lookMult);
 static double computeAst(binTree* ast);
 
 int main(int argc, const char *argv[])
@@ -36,7 +36,7 @@ double float_eval(char* str)
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
-    tokenifyStart(str, ast);
+    tokenifyStart(str, ast, 0);
 
     res = computeAst(ast);
     free(ast);
@@ -62,9 +62,9 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenifyStart(char *str, binTree* ast)
+static void tokenifyStart(char *str, binTree* ast, int lookMult)
 {
-    int pos_curr = 0, parenthesis = 0;
+    int pos_curr = 0, parenthesis = 0, op_found = 0;
     char curr[SIZE_SLOT] = {0};
 
     for (;;str++) {
@@ -80,16 +80,24 @@ static void tokenifyStart(char *str, binTree* ast)
                 continue;
         }
 
+        if (!lookMult && parenthesis == 0 && (*str == '*' || * str == '/'))
+            op_found++;
+
         if ((*str >= '0' && *str <= '9') || parenthesis != 0 ||
                 *str == '.' ||
-                *str == '*' ||
-                *str == '/' ||
-                *str == ')' ) {
+                *str == ')' ||
+                (!lookMult && (*str == '*' ||
+                *str == '/' ))) {
             curr[pos_curr++] = *str;
         }
         else {
             curr[pos_curr] = '\0';
-            tokenify(curr, ast, *str);
+
+            if (*str == '\0' && op_found)
+                tokenifyStart(curr, ast, op_found);
+            else
+                tokenify(curr, ast, *str);
+
             pos_curr = 0 ;
         }
 
@@ -100,7 +108,7 @@ static void tokenifyStart(char *str, binTree* ast)
 
 void tokenify(char* str, binTree* ast, char op)
 {
-    int pos_curr = 0, parenthesis = 0;
+    int pos_curr = 0, parenthesis = 0, op_found = 0;
     char curr[SIZE_SLOT] = {0};
     binTree *fst = findFirstEmpty(ast);
 
@@ -128,7 +136,7 @@ void tokenify(char* str, binTree* ast, char op)
                 curr[pos_curr] = '\0';
 
                 if (*str == ')')
-                    tokenifyStart(1+curr, fst);
+                    tokenifyStart(1+curr, fst, !op_found);
                 else
                     tokenify(curr, fst, *str);
 
