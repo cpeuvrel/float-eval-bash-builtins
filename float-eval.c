@@ -98,7 +98,7 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
         else {
             curr[pos_curr] = '\0';
 
-            if (*str == ')')
+            if (beginParenthesis && *str == ')')
                 tokenifyStart(1+curr, ast, 0);
             else if (*str == '\0' && op_found)
                 tokenifyStart(curr, ast, op_found);
