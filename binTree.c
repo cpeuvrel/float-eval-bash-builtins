@@ -17,6 +17,7 @@
 
 #include "binTree.h"
 static void printBinTreeDepth(binTree*, int lvl, int pos);
+static binTree* findFirstLeftEmpty(binTree* t);
 
 void initBinTree(binTree* t)
 {
@@ -78,6 +79,19 @@ binTree* findFirstEmpty(binTree* t)
         res->next1 = new;
 
     return new;
+}
+
+static binTree* findFirstLeftEmpty(binTree* t)
+{
+    while (t->next1 && isOp(t->next1->val[0]))
+        t = t->next1;
+
+    if (t->next2 && isOp(t->next2->val[0]))
+        return findFirstLeftEmpty(t->next2);
+    else if (! t->next1 || ! t->next2)
+        return t;
+
+    return NULL;
 }
 
 int isOp(char str)
