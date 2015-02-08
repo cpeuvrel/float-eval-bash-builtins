@@ -58,14 +58,16 @@ binTree* findFirstEmpty(binTree* t)
     if (!t->next1 && !t->next2 && !t->val[0])
         return t;
 
-    binTree *res = t, *new = malloc(sizeof(binTree)), *tmp = NULL;
-    initBinTree(new);
+    binTree *res = t, *tmp = NULL;
 
     while (res->val[0] && ! (tmp = findFirstLeftEmpty(res)) && res->next2)
         res = res->next2;
 
     if (! res->val[0])
         return res;
+
+    binTree *new = malloc(sizeof(binTree));
+    initBinTree(new);
 
     if (tmp){
         if (tmp->next1)
