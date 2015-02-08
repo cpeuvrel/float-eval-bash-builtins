@@ -21,7 +21,7 @@ static double computeAst(binTree* ast);
 
 int main(int argc, const char *argv[])
 {
-    float_eval("1+3*4+2+8");
+    printf("%f !\n", float_eval("3.2*(4+2)"));
     return 0;
 }
 
