@@ -21,7 +21,12 @@ static double computeAst(binTree* ast);
 
 int main(int argc, const char *argv[])
 {
-    printf("%f !\n", float_eval("3.2*(4+2)"));
+    if (! argv[1]) {
+        printf("Missing argument\n");
+        return 1;
+    }
+
+    printf("%f !\n", float_eval(argv[1]));
     return 0;
 }
 
