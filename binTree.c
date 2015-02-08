@@ -42,7 +42,7 @@ static void printBinTreeDepth(binTree* t, int lvl, int pos)
         printf("|");
     else
         printf("\\");
-            
+
     printf("- %s\n",t->val);
 
     lvl++;
