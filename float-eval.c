@@ -49,7 +49,9 @@ double float_eval(char* str)
 
 static double computeAst(binTree* ast)
 {
-    if (! isOp(ast->val[0]))
+    if (!ast)
+        return 0;
+    else if (! isOp(ast->val[0]))
         return atof(ast->val);
 
     switch (ast->val[0]) {
