@@ -75,7 +75,8 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
     for (;;str++) {
         switch (*str) {
             case '(':
-                beginParentheses++;
+                if ( parentheses == 0 )
+                    beginParentheses++;
                 parentheses++;
                 break;
             case ')':
@@ -131,6 +132,8 @@ void tokenify(char* str, binTree* ast, char op)
         for (;;str++) {
             switch (*str) {
                 case '(':
+                    if (! parentheses)
+                        beginParentheses++;
                     parentheses++;
                     break;
                 case ')':
@@ -141,14 +144,14 @@ void tokenify(char* str, binTree* ast, char op)
                 op_found++;
 
             if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
-                    (!beginParentheses && *str == ')') ||
+                    (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
                     *str == '.' ) {
                 curr[pos_curr++] = *str;
             }
             else {
                 curr[pos_curr] = '\0';
 
-                if (*str == ')')
+                if (beginParentheses == 2 && *str == ')')
                     tokenifyStart(1+curr, fst, !op_found);
                 else if (curr[0])
                     tokenify(curr, fst, *str);
