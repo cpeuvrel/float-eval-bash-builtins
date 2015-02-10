@@ -51,7 +51,7 @@ static double computeAst(binTree* ast)
 {
     if (!ast)
         return 0;
-    else if (! isOp(ast->val[0]))
+    else if (! isOp(ast->val[0]) || (ast->val[0] == '-' && ast->val[1]))
         return atof(ast->val);
 
     switch (ast->val[0]) {
