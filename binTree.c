@@ -110,6 +110,6 @@ int isOp(char str)
 
 static int isLeafOp(binTree* t)
 {
-	int a = isOp(t->val[0]), b = (! t->val[1]);
+    int a = isOp(t->val[0]), b = (! t->val[1]);
     return a && b;
 }
