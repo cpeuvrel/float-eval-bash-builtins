@@ -75,8 +75,16 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
     int beginParentheses = str[0] == '(' ? 1 : 0;
 
     int beginSub = str[0] == '-' ? 1 : 0;
-    if (beginSub)
-        str++;
+    if (beginSub) {
+        if (str[1] == '(') {
+            sprintf(tmp, "0%s", str);
+            beginParentheses = 0;
+            beginSub = 0;
+            strncpy(str, tmp , SIZE_SLOT);
+        }
+        else
+            str++;
+    }
 
     for (;;str++) {
         switch (*str) {
