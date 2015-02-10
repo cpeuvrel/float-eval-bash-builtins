@@ -1,15 +1,25 @@
 .PHONY: clean, mrproper
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -W -Wall
+BASH_CFLAGS = -I/usr/include/bash-plugins \
+	-DHAVE_CONFIG_H -DSHELL -O2 -g -fwrapv -D_GNU_SOURCE -DRECYCLES_PIDS  -Ibash-headers-4.1.2-9.el6_2.x86_64 -Ibash-headers-4.1.2-9.el6_2.x86_64/include -Ibash-headers-4.1.2-9.el6_2.x86_64/lib -Ibash-headers-4.1.2-9.el6_2.x86_64/builtins
 
-all : float-eval.o binTree.o
-	$(CC) $(CFLAGS) $^ -o float-eval
+SPEC_CFLAGS = -fPIC -I. $(BASH_CFLAGS)
+
+all : float_eval.so
 
 %.o : %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(SPEC_CFLAGS) $(CFLAGS) -c -o $@ $<
+
+float_eval.o : binTree.o float_eval.h
+binTree.o : binTree.h
 
 clean :
 	rm -f *.o core.*
 
 mrproper : clean
-	rm -f float-eval
+	rm -f float_eval float_eval.so
+
+%.so : %.o
+	$(CC) -shared -Wl,-soname,$(notdir $@) -o $@ $^
+
