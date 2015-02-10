@@ -36,13 +36,18 @@ int main(int argc, const char *argv[])
 
 int float_eval_builtin(WORD_LIST *list)
 {
+    char res[SIZE_SLOT] = "";
+
     if (!HAS_WORD(list)) {
         builtin_usage();
         return EX_USAGE;
     }
 
-    while (HAS_WORD(list)) {
-        printf("%f\n", float_eval(list->word->word));
+    snprintf(res, SIZE_SLOT,"%f", float_eval(list->word->word));
+
+    if (bind_variable("REPLY", res, 0) == NULL) {
+        builtin_error("Failed to bind variable: REPLY");
+        return EXECUTION_FAILURE;
     }
 
     return EXECUTION_SUCCESS;
