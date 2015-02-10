@@ -115,8 +115,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
                 continue;
         }
 
-        if ((start &&!lookMult && parentheses == 0 && (*str == '*' || * str == '/')) ||
-            (!start && parentheses == 1 && (*str == '+' || *str == '-')))
+        if (start &&!lookMult && parentheses == 0 && (*str == '*' || * str == '/'))
             mult_found++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
