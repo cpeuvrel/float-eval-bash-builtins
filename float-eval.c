@@ -70,9 +70,13 @@ static double computeAst(binTree* ast)
 static void tokenifyStart(char *str, binTree* ast, int lookMult)
 {
     int pos_curr = 0, parentheses = 0, mult_found = 0;
-    char curr[SIZE_SLOT] = {0};
+    char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
 
     int beginParentheses = str[0] == '(' ? 1 : 0;
+
+    int beginSub = str[0] == '-' ? 1 : 0;
+    if (beginSub)
+        str++;
 
     for (;;str++) {
         switch (*str) {
@@ -102,7 +106,12 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
         else {
             curr[pos_curr] = '\0';
 
-            if (beginParentheses == 2 && *str == ')')
+            if (beginSub) {
+                beginSub = 0;
+                sprintf(tmp, "-%s", curr);
+                tokenify(tmp, ast, *str);
+            }
+            else if (beginParentheses == 2 && *str == ')')
                 tokenifyStart(1+curr, ast, 0);
             else if (*str == '\0' && mult_found)
                 tokenifyStart(curr, ast, mult_found);
@@ -120,10 +129,13 @@ static void tokenifyStart(char *str, binTree* ast, int lookMult)
 void tokenify(char* str, binTree* ast, char op)
 {
     int pos_curr = 0, parentheses = 0, mult_found = 0;
-    char curr[SIZE_SLOT] = {0};
+    char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
     binTree *fst = findFirstEmpty(ast);
 
     int beginParentheses = str[0] == '(' ? 1 : 0;
+    int beginSub = str[0] == '-' ? 1 : 0;
+    if (beginSub && op != 0)
+        str++;
 
     if (op == '\0' && ! beginParentheses) {
         sprintf(fst->val, "%s", str);
@@ -153,7 +165,12 @@ void tokenify(char* str, binTree* ast, char op)
             else {
                 curr[pos_curr] = '\0';
 
-                if (beginParentheses == 2 && *str == ')')
+                if (beginSub) {
+                    beginSub = 0;
+                    sprintf(tmp, "-%s", curr);
+                    tokenify(tmp, ast, *str);
+                }
+                else if (beginParentheses == 2 && *str == ')')
                     tokenifyStart(1+curr, fst, !mult_found);
                 else if (curr[0])
                     tokenify(curr, fst, *str);
