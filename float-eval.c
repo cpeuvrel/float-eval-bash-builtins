@@ -29,6 +29,7 @@ int main(int argc, const char *argv[])
     char str[SIZE_SLOT] = "";
     strncpy(str, argv[1], SIZE_SLOT);
 
+    str[SIZE_SLOT-1] = 0;
     printf("%f\n", float_eval(str));
     return 0;
 }
@@ -82,6 +83,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
             beginParentheses = 0;
             beginSub = 0;
             strncpy(str, tmp , SIZE_SLOT);
+            str[SIZE_SLOT-1] = 0;
         }
         else if (start || op != 0)
             str++;
