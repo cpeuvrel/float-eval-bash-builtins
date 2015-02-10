@@ -79,7 +79,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
     int beginSub = str[0] == '-' ? 1 : 0;
     if (beginSub) {
         if (start && str[1] == '(') {
-            sprintf(tmp, "0%s", str);
+            snprintf(tmp, SIZE_SLOT,"0%s", str);
             beginParentheses = 0;
             beginSub = 0;
             strncpy(str, tmp , SIZE_SLOT);
@@ -93,7 +93,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
         fst = findFirstEmpty(ast);
 
         if (op == 0 && !beginParentheses) {
-            sprintf(fst->val, "%s", str);
+            snprintf(fst->val, SIZE_SLOT,"%s", str);
             return;
         }
         sprintf(fst->val, "%c",op);
@@ -131,7 +131,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
 
         if (beginSub) {
             beginSub = 0;
-            sprintf(tmp, "-%s", curr);
+            snprintf(tmp, SIZE_SLOT,"-%s", curr);
             tokenify(tmp, ast, *str, 0, 0);
         }
         else if (beginParentheses == 2 && *str == ')')
