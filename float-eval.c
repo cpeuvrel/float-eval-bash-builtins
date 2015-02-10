@@ -73,10 +73,6 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
     binTree *fst = ast;
 
-    if (!start) {
-        fst = findFirstEmpty(ast);
-    }
-
     int beginParentheses = str[0] == '(' ? 1 : 0;
 
     int beginSub = str[0] == '-' ? 1 : 0;
@@ -91,12 +87,15 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
             str++;
     }
 
-    if (!start && op == 0 && !beginParentheses) {
-        sprintf(fst->val, "%s", str);
-        return;
-    }
-    else if (!start)
+    if (!start) {
+        fst = findFirstEmpty(ast);
+
+        if (op == 0 && !beginParentheses) {
+            sprintf(fst->val, "%s", str);
+            return;
+        }
         sprintf(fst->val, "%c",op);
+    }
 
     for (;;str++) {
         switch (*str) {
