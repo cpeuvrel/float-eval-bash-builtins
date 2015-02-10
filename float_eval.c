@@ -19,21 +19,6 @@
 static double computeAst(binTree* ast);
 static void tokenify(char *str, binTree* ast, char op, int lookMult, int start);
 
-int main(int argc, const char *argv[])
-{
-    if (! argv[1]) {
-        printf("Missing argument\n");
-        return 1;
-    }
-
-    char str[SIZE_SLOT] = "";
-    strncpy(str, argv[1], SIZE_SLOT);
-
-    str[SIZE_SLOT-1] = 0;
-    printf("%f\n", float_eval(str));
-    return 0;
-}
-
 int float_eval_builtin(WORD_LIST *list)
 {
     char res[SIZE_SLOT] = "";
