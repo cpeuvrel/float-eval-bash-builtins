@@ -96,7 +96,8 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
             snprintf(fst->val, SIZE_SLOT,"%s", str);
             return;
         }
-        sprintf(fst->val, "%c",op);
+        fst->val[0] = op;
+        fst->val[1] = 0;
     }
 
     for (;;str++) {
