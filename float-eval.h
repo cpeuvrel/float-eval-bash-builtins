@@ -25,6 +25,5 @@
 #include "binTree.h"
 
 double float_eval(char* str);
-void tokenify(char* curr, binTree* ast, char op);
 
 #endif /* end of include guard: FLOAT-EVAL_H */
