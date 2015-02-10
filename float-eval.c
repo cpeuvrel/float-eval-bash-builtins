@@ -122,24 +122,24 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
                 (!lookMult && start && (*str == '*' ||
                 *str == '/' ))) {
             curr[pos_curr++] = *str;
+            continue;
         }
-        else {
-            curr[pos_curr] = '\0';
 
-            if (beginSub) {
-                beginSub = 0;
-                sprintf(tmp, "-%s", curr);
-                tokenify(tmp, ast, *str, 0, 0);
-            }
-            else if (beginParentheses == 2 && *str == ')')
-                tokenify(1+curr, fst, 0, !start && !mult_found, 1);
-            else if (*str == '\0' && mult_found && start)
-                tokenify(curr, ast, 0, mult_found, 1);
-            else if (start || (!start && curr[0]))
-                tokenify(curr, fst, *str, 0, 0);
+        curr[pos_curr] = '\0';
 
-            pos_curr = 0 ;
+        if (beginSub) {
+            beginSub = 0;
+            sprintf(tmp, "-%s", curr);
+            tokenify(tmp, ast, *str, 0, 0);
         }
+        else if (beginParentheses == 2 && *str == ')')
+            tokenify(1+curr, fst, 0, !start && !mult_found, 1);
+        else if (*str == '\0' && mult_found && start)
+            tokenify(curr, ast, 0, mult_found, 1);
+        else if (start || (!start && curr[0]))
+            tokenify(curr, fst, *str, 0, 0);
+
+        pos_curr = 0 ;
 
         if (! *str)
             break;
