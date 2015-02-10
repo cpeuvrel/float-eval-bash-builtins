@@ -15,7 +15,7 @@
  * =====================================================================================
  */
 
-#include "float-eval.h"
+#include "float_eval.h"
 static double computeAst(binTree* ast);
 static void tokenify(char *str, binTree* ast, char op, int lookMult, int start);
 
