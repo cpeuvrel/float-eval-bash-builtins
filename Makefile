@@ -10,7 +10,7 @@ all : float_eval.so
 %.o : %.c
 	$(CC) $(SPEC_CFLAGS) $(CFLAGS) -c -o $@ $<
 
-float_eval.o : binTree.o float_eval.h
+float_eval.so : float_eval.o binTree.o
 binTree.o : binTree.h
 
 clean :
