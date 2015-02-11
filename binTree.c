@@ -54,6 +54,15 @@ static void printBinTreeDepth(binTree* t, int lvl, int pos)
         printBinTreeDepth(t->next2, lvl, 2);
 }
 
+void freeBinTree(binTree* t)
+{
+    if (t->next1)
+        freeBinTree(t->next1);
+    if (t->next2)
+        freeBinTree(t->next2);
+    free(t);
+}
+
 binTree* findFirstEmpty(binTree* t)
 {
     if (!t->next1 && !t->next2 && !t->val[0])

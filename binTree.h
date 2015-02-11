@@ -31,6 +31,7 @@ typedef struct _binTree {
 
 void initBinTree(binTree* t);
 void printBinTree(binTree* t);
+void freeBinTree(binTree* t);
 binTree* findFirstEmpty(binTree* t);
 int isOp(char str);
 

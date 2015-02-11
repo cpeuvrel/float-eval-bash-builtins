@@ -47,7 +47,7 @@ double float_eval(char* str)
     tokenify(str, ast, 0, 0, 1);
 
     res = computeAst(ast);
-    free(ast);
+    freeBinTree(ast);
 
     return res;
 }
