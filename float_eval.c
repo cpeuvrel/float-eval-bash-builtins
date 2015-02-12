@@ -55,10 +55,11 @@ double float_eval(char* str)
 
 static double computeAst(binTree* ast)
 {
+    //TODO: Check endptr to see if we miss sth
     if (!ast)
         return 0;
     else if (! isOp(ast->val[0]) || (ast->val[0] == '-' && ast->val[1]))
-        return atof(ast->val);
+        return strtod(ast->val, NULL);
 
     switch (ast->val[0]) {
         case '+':
