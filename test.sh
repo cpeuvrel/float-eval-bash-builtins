@@ -5,6 +5,10 @@ die() {
     exit 1
 }
 
+float_eval() {
+    bash -c "enable -f $PWD/float_eval.so float_eval; float_eval '$@'; echo \$REPLY"
+}
+
 TESTS=(
     "2"             "2"
     "1+2"           "3"
@@ -27,7 +31,7 @@ TESTS=(
     )
 
 for (( i = 0; i < ${#TESTS[@]}; i+=2 )); do
-    res=$(./float-eval "${TESTS[i]}")
+    res=$(float_eval "${TESTS[i]}")
     [[ "${res%%.000000}" == "${TESTS[i+1]}" ]] ||
         die "FAIL : '${TESTS[i]}' give '$res' instead of '${TESTS[i+1]}'"
 done
