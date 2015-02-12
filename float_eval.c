@@ -28,7 +28,8 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
-    snprintf(res, SIZE_SLOT,"%f", float_eval(list->word->word));
+    strncpy(res, list->word->word , SIZE_SLOT);
+    snprintf(res, SIZE_SLOT,"%f", float_eval(res));
 
     if (bind_variable("REPLY", res, 0) == NULL) {
         builtin_error("Failed to bind variable: REPLY");
