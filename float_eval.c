@@ -135,7 +135,6 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
         curr[pos_curr] = '\0';
 
         if (beginSub) {
-            freeBinTree(fst);
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
             tokenify(tmp, ast, *str, 0, 0);
