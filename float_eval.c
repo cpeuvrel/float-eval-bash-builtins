@@ -121,14 +121,13 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
                 continue;
         }
 
-        if (!start && !pass && parentheses == 0 && (*str == '*' || * str == '/'))
+        if (!start && parentheses == 0 && isOpCurrentPrio(*str,(pass+1)))
             found_next_op++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
                 (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (!pass && !start && (*str == '*' ||
-                *str == '/' ))) {
+                (!start && isOpCurrentPrio(*str, (pass+1)))) {
             curr[pos_curr++] = *str;
             continue;
         }
