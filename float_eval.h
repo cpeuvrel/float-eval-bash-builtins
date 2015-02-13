@@ -35,6 +35,7 @@
 
 double float_eval(char* str);
 int float_eval_builtin(WORD_LIST *list);
+int isOpCurrentPrio(char op, int prio);
 
 /*  builtin short documentation */
 char float_eval_short_doc[] = "float_eval STRING...";

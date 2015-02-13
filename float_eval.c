@@ -153,3 +153,20 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
             break;
     }
 }
+
+int isOpCurrentPrio(char op, int prio)
+{
+    char* opPrio[SIZE_SLOT] = {
+        "*/",
+        "+-",
+        ""
+    };
+    int i = 0;
+
+    while (opPrio[prio][i]) {
+        if (op == opPrio[prio][i++])
+            return 1;
+    }
+
+    return 0;
+}
