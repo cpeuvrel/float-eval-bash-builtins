@@ -45,7 +45,7 @@ double float_eval(char* str)
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
-    tokenify(str, ast, 0, 0, 0);
+    tokenify(str, ast, 0, 0, 1);
 
     res = computeAst(ast);
     freeBinTree(ast);
@@ -86,7 +86,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
 
     int beginSub = str[0] == '-' ? 1 : 0;
     if (beginSub) {
-        if (start == 0 && str[1] == '(') {
+        if (start && str[1] == '(') {
             snprintf(tmp, SIZE_SLOT,"0%s", str);
             beginParentheses = 0;
             beginSub = 0;
@@ -97,7 +97,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
             str++;
     }
 
-    if (start == 1) {
+    if (!start) {
         fst = findFirstEmpty(ast);
 
         if (op == 0 && !beginParentheses) {
@@ -123,13 +123,13 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
                 continue;
         }
 
-        if (!start && parentheses == 0 && isOpCurrentPrio(*str,(pass+1)))
+        if (start && parentheses == 0 && isOpCurrentPrio(*str,(pass+1)))
             found_next_op++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
                 (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (!start && isOpCurrentPrio(*str, (pass+1)))) {
+                (start && isOpCurrentPrio(*str, (pass+1)))) {
             curr[pos_curr++] = *str;
             continue;
         }
@@ -139,14 +139,14 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
         if (beginSub) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
-            tokenify(tmp, ast, *str, 0, 1);
+            tokenify(tmp, ast, *str, 0, 0);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, 0, 0, 0);
+            tokenify(1+curr, fst, 0, 0, 1);
         else if (*str == '\0' && found_next_op)
-            tokenify(curr, ast, 0, 1, 0);
-        else if (start == 0 || (start == 1 && curr[0]))
-            tokenify(curr, fst, *str, 0, 1);
+            tokenify(curr, ast, 0, 1, 1);
+        else if (start || (!start && curr[0]))
+            tokenify(curr, fst, *str, 0, 0);
 
         pos_curr = 0 ;
 
