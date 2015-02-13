@@ -76,7 +76,7 @@ static double computeAst(binTree* ast)
 
 static void tokenify(char *str, binTree* ast, char op, int pass, int start)
 {
-    int pos_curr = 0, parentheses = 0, mult_found = 0;
+    int pos_curr = 0, parentheses = 0, found_next_op = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
     binTree *fst = ast;
 
@@ -122,7 +122,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
         }
 
         if (!start && !pass && parentheses == 0 && (*str == '*' || * str == '/'))
-            mult_found++;
+            found_next_op++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
@@ -142,8 +142,8 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
         }
         else if (beginParentheses == 2 && *str == ')')
             tokenify(1+curr, fst, 0, 0, 0);
-        else if (*str == '\0' && mult_found && !start)
-            tokenify(curr, ast, 0, mult_found, 0);
+        else if (*str == '\0' && found_next_op && !start)
+            tokenify(curr, ast, 0, found_next_op, 0);
         else if (start == 0 || (start == 1 && curr[0]))
             tokenify(curr, fst, *str, 0, 1);
 
