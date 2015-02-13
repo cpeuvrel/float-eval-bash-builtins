@@ -165,6 +165,9 @@ int isOpCurrentPrio(char op, int prio)
     };
     int i = 0;
 
+    if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
+		return 0;
+
     while (opPrio[prio][i]) {
         if (op == opPrio[prio][i++])
             return 1;
