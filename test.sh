@@ -1,5 +1,8 @@
 #!/bin/bash
 
+: ${NB:=1000}
+LC_ALL=C
+
 die() {
     echo "$@" >&2
     exit 1
@@ -7,6 +10,20 @@ die() {
 
 float_eval() {
     bash -c "enable -f $PWD/float_eval.so float_eval; float_eval '$@'; echo \$REPLY"
+}
+
+float_eval_bash () {
+  local scale=2 res=
+
+  if [[ $# > 0 ]]; then
+      res=$(bc -q <<< "scale=$scale ; $*" 2> /dev/null)
+  fi
+
+  [[ "${res:0:1}" == "." ]] && res="0$res"
+
+  REPLY="$res"
+  [[ $res == 0 ]] && return 1
+  return 0
 }
 
 TESTS=(
@@ -37,3 +54,13 @@ for (( i = 0; i < ${#TESTS[@]}; i+=2 )); do
 done
 
 echo "Everything OK"
+
+
+echo -e "\n============= Benchmarks ===============\n"
+echo "--> Builtins"
+bash -c "enable -f $PWD/float_eval.so float_eval; time for (( i = 0; i < $NB; i++ )); do float_eval '1+2'; done"
+
+echo -e "\n--> Bash (bc)"
+time for (( i = 0; i < $NB; i++ )); do
+    float_eval_bash "1+2"
+done
