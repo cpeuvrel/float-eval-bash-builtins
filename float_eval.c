@@ -141,7 +141,7 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int pass)
             tokenify(tmp, ast, *str, 0, 1);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, 0, pass == 1 && !mult_found, 0);
+            tokenify(1+curr, fst, 0, 0, 0);
         else if (*str == '\0' && mult_found && pass == 0)
             tokenify(curr, ast, 0, mult_found, 0);
         else if (pass == 0 || (pass == 1 && curr[0]))
