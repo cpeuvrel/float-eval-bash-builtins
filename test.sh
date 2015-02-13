@@ -56,7 +56,7 @@ done
 echo "Everything OK"
 
 
-echo -e "\n============= Benchmarks ===============\n"
+echo -e "\n============= Benchmarks for $NB iterations  ===============\n"
 echo "--> Builtins"
 bash -c "enable -f $PWD/float_eval.so float_eval; time for (( i = 0; i < $NB; i++ )); do float_eval '1+2'; done"
 
