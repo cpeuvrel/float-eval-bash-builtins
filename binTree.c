@@ -112,6 +112,7 @@ int isOp(char str)
         case '-':
         case '*':
         case '/':
+        case '%':
         case '&':
         case '^':
         case '|':
