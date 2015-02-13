@@ -17,7 +17,7 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
-static void tokenify(char *str, binTree* ast, char op, int pass, int start);
+static void tokenify(char *str, binTree* ast, char op, int pass, int start, char prevOp);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -45,7 +45,7 @@ double float_eval(char* str)
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
-    tokenify(str, ast, 0, 0, 1);
+    tokenify(str, ast, 0, 0, 1, 0);
 
     res = computeAst(ast);
     freeBinTree(ast);
@@ -80,7 +80,7 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenify(char *str, binTree* ast, char op, int pass, int start)
+static void tokenify(char *str, binTree* ast, char op, int pass, int start, char prevOp)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
@@ -143,16 +143,19 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
         if (beginSub && pass == 3) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
-            tokenify(tmp, ast, *str, 0, 0);
+            tokenify(tmp, ast, *str, 0, 0, 0);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, 0, 0, 1);
+            tokenify(1+curr, fst, 0, 0, 1, 0);
         else if (*str == '\0' && found_next_op)
-            tokenify(curr, ast, 0, ++pass, 1);
+            tokenify(curr, ast, 0, ++pass, 1, 0);
         else if (start || (!start && curr[0]))
-            tokenify(curr, fst, *str, 0, 0);
+            tokenify(curr, fst, *str, 0, 0, prevOp);
 
         pos_curr = 0 ;
+
+        if (isOp(*str))
+           prevOp = *str;
 
         if (! *str)
             break;
