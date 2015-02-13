@@ -159,8 +159,8 @@ int isOpCurrentPrio(char op, int prio)
 {
     char* opPrio[SIZE_SLOT] = {
         "&",
-        "*/",
         "+-",
+        "*/",
         ""
     };
     int i = 0;
