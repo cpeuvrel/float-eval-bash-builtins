@@ -155,6 +155,21 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
     }
 }
 
+int isOpPrioAbove(char op, int prio)
+{
+    int res = 0;
+
+    if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
+		return 0;
+
+    while ((res = isOpCurrentPrio(op,prio++)) == 0) {}
+
+    if (res == -1)
+        return 0;
+    return 1;
+
+}
+
 int isOpCurrentPrio(char op, int prio)
 {
     char* opPrio[SIZE_SLOT] = {
@@ -167,6 +182,9 @@ int isOpCurrentPrio(char op, int prio)
 
     if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
 		return 0;
+
+    if (!opPrio[prio][0])
+       return -1;
 
     while (opPrio[prio][i]) {
         if (op == opPrio[prio][i++])
