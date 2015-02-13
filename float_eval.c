@@ -72,6 +72,10 @@ static double computeAst(binTree* ast)
             return computeAst(ast->next1) / computeAst(ast->next2);
         case '&':
             return (int)computeAst(ast->next1) & (int)computeAst(ast->next2);
+        case '^':
+            return (int)computeAst(ast->next1) ^ (int)computeAst(ast->next2);
+        case '|':
+            return (int)computeAst(ast->next1) | (int)computeAst(ast->next2);
     }
     return 0;
 }
@@ -173,6 +177,8 @@ int isOpPrioAbove(char op, int prio)
 int isOpCurrentPrio(char op, int prio)
 {
     char* opPrio[SIZE_SLOT] = {
+        "|",
+        "^",
         "&",
         "+-",
         "*/",
