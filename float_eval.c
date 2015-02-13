@@ -93,7 +93,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
             strncpy(str, tmp , SIZE_SLOT);
             str[SIZE_SLOT-1] = 0;
         }
-        else if (start == 0 || op != 0)
+        else if (pass == 3 && (start || op != 0))
             str++;
     }
 
@@ -136,7 +136,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
 
         curr[pos_curr] = '\0';
 
-        if (beginSub) {
+        if (beginSub && pass == 3) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
             tokenify(tmp, ast, *str, 0, 0);
