@@ -17,7 +17,7 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
-static void tokenify(char *str, binTree* ast, char op, int lookMult, int start);
+static void tokenify(char *str, binTree* ast, char op, int pass, int start);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -74,7 +74,7 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
+static void tokenify(char *str, binTree* ast, char op, int pass, int start)
 {
     int pos_curr = 0, parentheses = 0, mult_found = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
@@ -121,13 +121,13 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
                 continue;
         }
 
-        if (!start && !lookMult && parentheses == 0 && (*str == '*' || * str == '/'))
+        if (!start && !pass && parentheses == 0 && (*str == '*' || * str == '/'))
             mult_found++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
                 (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (!lookMult && !start && (*str == '*' ||
+                (!pass && !start && (*str == '*' ||
                 *str == '/' ))) {
             curr[pos_curr++] = *str;
             continue;
