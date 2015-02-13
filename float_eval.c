@@ -142,6 +142,23 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
 
         curr[pos_curr] = '\0';
 
+        if (prevOp && *str && (*str == '%' || prevOp == '%') ) {
+            binTree *newRoot = malloc(sizeof(binTree));
+            binTree *fstTmp = malloc(sizeof(binTree));
+
+            strncpy(fstTmp->val, fst->val, SIZE_SLOT);
+            fstTmp->next1 = fst->next1;
+            fstTmp->next2 = fst->next2;
+
+            newRoot->next1 = fstTmp;
+
+            strncpy(ast->val, newRoot->val, SIZE_SLOT);
+            ast->next1 = newRoot->next1;
+            ast->next2 = newRoot->next2;
+
+            free(newRoot);
+        }
+
         if (beginSub && pass == 3) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
