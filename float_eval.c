@@ -17,7 +17,7 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
-static void tokenify(char *str, binTree* ast, char op, int lookMult, int start);
+static void tokenify(char *str, binTree* ast, char op, int lookMult, int pass);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -45,7 +45,7 @@ double float_eval(char* str)
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
-    tokenify(str, ast, 0, 0, 1);
+    tokenify(str, ast, 0, 0, 0);
 
     res = computeAst(ast);
     freeBinTree(ast);
@@ -74,7 +74,7 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
+static void tokenify(char *str, binTree* ast, char op, int lookMult, int pass)
 {
     int pos_curr = 0, parentheses = 0, mult_found = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
@@ -84,18 +84,18 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
 
     int beginSub = str[0] == '-' ? 1 : 0;
     if (beginSub) {
-        if (start && str[1] == '(') {
+        if (pass == 0 && str[1] == '(') {
             snprintf(tmp, SIZE_SLOT,"0%s", str);
             beginParentheses = 0;
             beginSub = 0;
             strncpy(str, tmp , SIZE_SLOT);
             str[SIZE_SLOT-1] = 0;
         }
-        else if (start || op != 0)
+        else if (pass == 0 || op != 0)
             str++;
     }
 
-    if (!start) {
+    if (pass == 1) {
         fst = findFirstEmpty(ast);
 
         if (op == 0 && !beginParentheses) {
@@ -121,13 +121,13 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
                 continue;
         }
 
-        if (start &&!lookMult && parentheses == 0 && (*str == '*' || * str == '/'))
+        if (pass == 0 &&!lookMult && parentheses == 0 && (*str == '*' || * str == '/'))
             mult_found++;
 
         if ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
                 (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (!lookMult && start && (*str == '*' ||
+                (!lookMult && pass == 0 && (*str == '*' ||
                 *str == '/' ))) {
             curr[pos_curr++] = *str;
             continue;
@@ -138,14 +138,14 @@ static void tokenify(char *str, binTree* ast, char op, int lookMult, int start)
         if (beginSub) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
-            tokenify(tmp, ast, *str, 0, 0);
+            tokenify(tmp, ast, *str, 0, 1);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, 0, !start && !mult_found, 1);
-        else if (*str == '\0' && mult_found && start)
-            tokenify(curr, ast, 0, mult_found, 1);
-        else if (start || (!start && curr[0]))
-            tokenify(curr, fst, *str, 0, 0);
+            tokenify(1+curr, fst, 0, pass == 1 && !mult_found, 0);
+        else if (*str == '\0' && mult_found && pass == 0)
+            tokenify(curr, ast, 0, mult_found, 0);
+        else if (pass == 0 || (pass == 1 && curr[0]))
+            tokenify(curr, fst, *str, 0, 1);
 
         pos_curr = 0 ;
 
