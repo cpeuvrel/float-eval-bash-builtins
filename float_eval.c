@@ -142,7 +142,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start)
         else if (beginParentheses == 2 && *str == ')')
             tokenify(1+curr, fst, 0, 0, 0);
         else if (*str == '\0' && found_next_op && !start)
-            tokenify(curr, ast, 0, found_next_op, 0);
+            tokenify(curr, ast, 0, 1, 0);
         else if (start == 0 || (start == 1 && curr[0]))
             tokenify(curr, fst, *str, 0, 1);
 
