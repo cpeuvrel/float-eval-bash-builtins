@@ -112,7 +112,7 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
             strncpy(str, tmp , SIZE_SLOT);
             str[SIZE_SLOT-1] = 0;
         }
-        else if (pass == 3 && (start || op[0] != 0))
+        else if (pass == SUM_LVL && (start || op[0] != 0))
             str++;
     }
 
@@ -176,7 +176,7 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
             free(newRoot);
         }
 
-        if (beginSub && pass == 3) {
+        if (beginSub && pass == SUM_LVL) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
             i = tokenify(tmp, ast, str, 0, 0, 0);
@@ -250,7 +250,7 @@ binTree* findNodeToSwapModulo(binTree* t, binTree* save)
     if (save == NULL)
         save = t;
 
-    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val, 4))
+    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val, MULT_LVL))
         return findNodeToSwapModulo(t->next2, NULL);
 
     if (left)
