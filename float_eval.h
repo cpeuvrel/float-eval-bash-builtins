@@ -33,7 +33,7 @@
 
 #include "binTree.h"
 
-double float_eval(char* str);
+double float_eval(char* str, int flags);
 int float_eval_builtin(WORD_LIST *list);
 int isOpCurrentPrio(char op, int prio);
 int isOpPrioAbove(char op, int prio);

@@ -22,6 +22,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
 int float_eval_builtin(WORD_LIST *list)
 {
     char res[SIZE_SLOT] = "";
+    int flags = 0;
 
     if (!HAS_WORD(list)) {
         builtin_usage();
@@ -29,7 +30,7 @@ int float_eval_builtin(WORD_LIST *list)
     }
 
     strncpy(res, list->word->word , SIZE_SLOT);
-    snprintf(res, SIZE_SLOT,"%f", float_eval(res));
+    snprintf(res, SIZE_SLOT,"%f", float_eval(res, flags));
 
     if (bind_variable("REPLY", res, 0) == NULL) {
         builtin_error("Failed to bind variable: REPLY");
@@ -39,7 +40,7 @@ int float_eval_builtin(WORD_LIST *list)
     return EXECUTION_SUCCESS;
 }
 
-double float_eval(char* str)
+double float_eval(char* str, int flags)
 {
     double res = 0;
     binTree *ast = malloc(sizeof(binTree));
