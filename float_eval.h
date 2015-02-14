@@ -18,6 +18,8 @@
 
 #define FLOAT_EVAL_H
 
+#define FLOAT_OPT_VERBOSE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

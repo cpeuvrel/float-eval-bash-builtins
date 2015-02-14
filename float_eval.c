@@ -29,6 +29,14 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
+    while (HAS_WORD(list->next)) {
+        if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
+            strncmp("--verbose", list->word->word, SIZE_SLOT) == 0)
+            flags |= FLOAT_OPT_VERBOSE;
+
+        list = list->next;
+    }
+
     strncpy(res, list->word->word , SIZE_SLOT);
     snprintf(res, SIZE_SLOT,"%f", float_eval(res, flags));
 
@@ -49,6 +57,9 @@ double float_eval(char* str, int flags)
     tokenify(str, ast, 0, 0, 1, 0);
 
     res = computeAst(ast);
+    if (flags & FLOAT_OPT_VERBOSE)
+        printBinTree(ast);
+
     freeBinTree(ast);
 
     return res;
