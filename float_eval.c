@@ -147,16 +147,17 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
             initBinTree(newRoot);
             binTree *fstTmp = malloc(sizeof(binTree));
             initBinTree(fstTmp);
+            binTree *t = fst;
 
-            strncpy(fstTmp->val, fst->val, SIZE_SLOT);
-            fstTmp->next1 = fst->next1;
-            fstTmp->next2 = fst->next2;
+            strncpy(fstTmp->val, t->val, SIZE_SLOT);
+            fstTmp->next1 = t->next1;
+            fstTmp->next2 = t->next2;
 
             newRoot->next1 = fstTmp;
 
-            strncpy(ast->val, newRoot->val, SIZE_SLOT);
-            ast->next1 = newRoot->next1;
-            ast->next2 = newRoot->next2;
+            strncpy(t->val, newRoot->val, SIZE_SLOT);
+            t->next1 = newRoot->next1;
+            t->next2 = newRoot->next2;
 
             free(newRoot);
         }
