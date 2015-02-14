@@ -33,6 +33,7 @@ void initBinTree(binTree* t);
 void printBinTree(binTree* t);
 void freeBinTree(binTree* t);
 binTree* findFirstEmpty(binTree* t);
+binTree* findFirstLeftEmpty(binTree* t);
 int isOp(char str);
 
 #endif /* end of include guard: BINTREE_H */
