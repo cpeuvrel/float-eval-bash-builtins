@@ -123,8 +123,7 @@ static void tokenify(char *str, binTree* ast, char* op, int pass, int start, cha
             snprintf(fst->val, SIZE_SLOT,"%s", str);
             return;
         }
-        fst->val[0] = op[0];
-        fst->val[1] = 0;
+        writeOp(fst->val, op);
     }
 
     for (;;str++) {
