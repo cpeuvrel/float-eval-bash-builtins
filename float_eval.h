@@ -19,8 +19,8 @@
 #define FLOAT_EVAL_H
 
 #define FLOAT_OPT_VERBOSE 1
-#define SUM_LVL 3
-#define MULT_LVL 4
+#define SUM_LVL 5
+#define MULT_LVL 6
 
 #include <stdio.h>
 #include <stdlib.h>
