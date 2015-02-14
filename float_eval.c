@@ -186,7 +186,7 @@ int isOpPrioAbove(char op, int prio)
     int res = 0;
 
     if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
-		return 0;
+        return 0;
 
     while ((res = isOpCurrentPrio(op,prio++)) == 0) {}
 
@@ -209,7 +209,7 @@ int isOpCurrentPrio(char op, int prio)
     int i = 0;
 
     if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
-		return 0;
+        return 0;
 
     if (!opPrio[prio][0])
        return -1;
