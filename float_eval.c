@@ -17,8 +17,8 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
-static void tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
-static void writeOp(char* target, char* str);
+static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
+static int writeOp(char* target, char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -95,9 +95,9 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp)
+static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp)
 {
-    int pos_curr = 0, parentheses = 0, found_next_op = 0;
+    int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
     binTree *fst = ast;
 
@@ -121,9 +121,9 @@ static void tokenify(char *str, binTree* ast, char* op, int pass, int start, cha
 
         if (op[0] == 0 && !beginParentheses) {
             snprintf(fst->val, SIZE_SLOT,"%s", str);
-            return;
+            return 0;
         }
-        writeOp(fst->val, op);
+        offset = writeOp(fst->val, op);
     }
 
     for (;;str++) {
@@ -179,16 +179,19 @@ static void tokenify(char *str, binTree* ast, char* op, int pass, int start, cha
         if (beginSub && pass == 3) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
-            tokenify(tmp, ast, str, 0, 0, 0);
+            i = tokenify(tmp, ast, str, 0, 0, 0);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, "", 0, 1, 0);
+            i = tokenify(1+curr, fst, "", 0, 1, 0);
         else if (*str == '\0' && found_next_op)
-            tokenify(curr, ast, "", ++pass, 1, 0);
+            i = tokenify(curr, ast, "", ++pass, 1, 0);
         else if (start || (!start && curr[0]))
-            tokenify(curr, fst, str, 0, 0, prevOp);
+            i = tokenify(curr, fst, str, 0, 0, prevOp);
 
         pos_curr = 0 ;
+
+        for (; i > 0; i--)
+            str++;
 
         if (isOp(*str))
            prevOp = *str;
@@ -196,6 +199,7 @@ static void tokenify(char *str, binTree* ast, char* op, int pass, int start, cha
         if (! *str)
             break;
     }
+    return offset;
 }
 
 int isOpPrioAbove(char* op, int prio)
@@ -257,7 +261,7 @@ binTree* findNodeToSwapModulo(binTree* t, binTree* save)
     return save;
 }
 
-static void writeOp(char* target, char* str)
+static int writeOp(char* target, char* str)
 {
     int i = 0;
     char op2[32][3] = {
@@ -270,10 +274,11 @@ static void writeOp(char* target, char* str)
         if (strncmp(op2[i], str , 2) == 0){
             strncpy(target, op2[i] , 2);
             target[2] = 0;
-            return;
+            return 1;
         }
     }
 
     target[0] = str[0];
     target[1] = 0;
+    return 0;
 }
