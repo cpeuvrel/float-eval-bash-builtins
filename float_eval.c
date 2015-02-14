@@ -17,7 +17,7 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
-static void tokenify(char *str, binTree* ast, char op, int pass, int start, char prevOp);
+static void tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -54,7 +54,7 @@ double float_eval(char* str, int flags)
     binTree *ast = malloc(sizeof(binTree));
     initBinTree(ast);
 
-    tokenify(str, ast, 0, 0, 1, 0);
+    tokenify(str, ast, "", 0, 1, 0);
 
     res = computeAst(ast);
     if (flags & FLOAT_OPT_VERBOSE)
@@ -94,7 +94,7 @@ static double computeAst(binTree* ast)
     return 0;
 }
 
-static void tokenify(char *str, binTree* ast, char op, int pass, int start, char prevOp)
+static void tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
@@ -111,18 +111,18 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
             strncpy(str, tmp , SIZE_SLOT);
             str[SIZE_SLOT-1] = 0;
         }
-        else if (pass == 3 && (start || op != 0))
+        else if (pass == 3 && (start || op[0] != 0))
             str++;
     }
 
     if (!start) {
         fst = findFirstEmpty(ast);
 
-        if (op == 0 && !beginParentheses) {
+        if (op[0] == 0 && !beginParentheses) {
             snprintf(fst->val, SIZE_SLOT,"%s", str);
             return;
         }
-        fst->val[0] = op;
+        fst->val[0] = op[0];
         fst->val[1] = 0;
     }
 
@@ -141,13 +141,13 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
                 continue;
         }
 
-        if (parentheses == 0 && isOpPrioAbove(*str,pass))
+        if (parentheses == 0 && isOpPrioAbove(str,pass))
             found_next_op++;
 
         if (*str != '\0' && ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
                 (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (*str != ')' && !isOpCurrentPrio(*str, pass)))) {
+                (*str != ')' && !isOpCurrentPrio(str, pass)))) {
             curr[pos_curr++] = *str;
             continue;
         }
@@ -179,14 +179,14 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
         if (beginSub && pass == 3) {
             beginSub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
-            tokenify(tmp, ast, *str, 0, 0, 0);
+            tokenify(tmp, ast, str, 0, 0, 0);
         }
         else if (beginParentheses == 2 && *str == ')')
-            tokenify(1+curr, fst, 0, 0, 1, 0);
+            tokenify(1+curr, fst, "", 0, 1, 0);
         else if (*str == '\0' && found_next_op)
-            tokenify(curr, ast, 0, ++pass, 1, 0);
+            tokenify(curr, ast, "", ++pass, 1, 0);
         else if (start || (!start && curr[0]))
-            tokenify(curr, fst, *str, 0, 0, prevOp);
+            tokenify(curr, fst, str, 0, 0, prevOp);
 
         pos_curr = 0 ;
 
@@ -198,11 +198,11 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
     }
 }
 
-int isOpPrioAbove(char op, int prio)
+int isOpPrioAbove(char* op, int prio)
 {
     int res = 0;
 
-    if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
+    if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
     while ((res = isOpCurrentPrio(op,prio++)) == 0) {}
@@ -213,7 +213,7 @@ int isOpPrioAbove(char op, int prio)
 
 }
 
-int isOpCurrentPrio(char op, int prio)
+int isOpCurrentPrio(char* op, int prio)
 {
     char* opPrio[SIZE_SLOT] = {
         "|",
@@ -225,14 +225,14 @@ int isOpCurrentPrio(char op, int prio)
     };
     int i = 0;
 
-    if ((op >= '0' && op <= '9') || op == '.' || op == '\0')
+    if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
     if (!opPrio[prio][0])
        return -1;
 
     while (opPrio[prio][i]) {
-        if (op == opPrio[prio][i++])
+        if (op[0] == opPrio[prio][i++])
             return 1;
     }
 
@@ -245,7 +245,7 @@ binTree* findNodeToSwapModulo(binTree* t, binTree* save)
     if (save == NULL)
         save = t;
 
-    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val[0], 4))
+    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val, 4))
         return findNodeToSwapModulo(t->next2, NULL);
 
     if (left)
