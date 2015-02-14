@@ -23,6 +23,8 @@ You can use every common operations :
 Note that comparaisons and combinaisons results in a boolean : `1` == `true` and `0` == `false`
   
 # Not yet supported
+  - Scientific notation `1.00E+003`
+  - Set wanted precision
   - Not `!`
   - Bitwise not `~`
   
