@@ -144,7 +144,9 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
 
         if (prevOp && *str && (*str == '%' || prevOp == '%') ) {
             binTree *newRoot = malloc(sizeof(binTree));
+            initBinTree(newRoot);
             binTree *fstTmp = malloc(sizeof(binTree));
+            initBinTree(fstTmp);
 
             strncpy(fstTmp->val, fst->val, SIZE_SLOT);
             fstTmp->next1 = fst->next1;
