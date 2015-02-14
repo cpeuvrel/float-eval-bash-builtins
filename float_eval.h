@@ -44,11 +44,12 @@ int isOpPrioAbove(char* op, int prio);
 binTree* findNodeToSwapModulo(binTree* t, binTree* save);
 
 /*  builtin short documentation */
-char float_eval_short_doc[] = "float_eval STRING...";
+char float_eval_short_doc[] = "float_eval [-v] STRING...";
 
 /*  builtin long documentation */
 char *float_eval_long_doc[] = {
-    "Give one a several arithmetic strings to be parsed",
+    "Give one arithmetic string to be parsed in a double",
+    "Use -v/--verbose to show the syntax tree constructed",
     NULL
 };
 
