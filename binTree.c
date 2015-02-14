@@ -69,7 +69,7 @@ binTree* findFirstEmpty(binTree* t)
 
     binTree *res = t, *tmp = NULL;
 
-    while (res->val[0] && ! (tmp = findFirstLeftEmpty(res)) && res->next2)
+    while (res->val[0] && res->next1 && ! (tmp = findFirstLeftEmpty(res->next1)) && res->next2)
         res = res->next2;
 
     if (! res->val[0])
@@ -92,13 +92,21 @@ binTree* findFirstEmpty(binTree* t)
 
 binTree* findFirstLeftEmpty(binTree* t)
 {
+    if (t && t->val[0] && !isLeafOp(t))
+        return NULL;
+    else if (!t ||
+            !(t->val[0]) ||
+            !(t->next1) ||
+            !(t->next2))
+        return t;
+
     while (t->next1 && isLeafOp(t->next1) &&
             ((t->next1->next2 && isLeafOp(t->next1->next2)) || ! t->next1->next2 ))
         t = t->next1;
 
     if (t->next2 && isLeafOp(t->next2))
         return findFirstLeftEmpty(t->next2);
-    else if (! t->next1 || ! t->next2)
+    else if (isLeafOp(t) && (! t->next1 || ! t->next2))
         return t;
 
     return NULL;
