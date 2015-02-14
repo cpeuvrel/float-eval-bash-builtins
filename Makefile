@@ -11,6 +11,7 @@ all : float_eval.so
 	$(CC) $(SPEC_CFLAGS) $(CFLAGS) -c -o $@ $<
 
 float_eval.so : float_eval.o binTree.o
+float_eval.o : binTree.o float_eval.h
 binTree.o : binTree.h
 
 clean :
