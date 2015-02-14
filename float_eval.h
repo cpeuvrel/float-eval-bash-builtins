@@ -22,6 +22,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Bash includes required for builtins */
+
+#include "builtins.h"
+#include "shell.h"
+#include "common.h"
+
+#define HAS_WORD(wordlist) \
+        ((wordlist) && (wordlist)->word && (wordlist)->word->word)
+
 #include "binTree.h"
 
 double float_eval(char* str);
