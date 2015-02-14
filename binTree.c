@@ -64,7 +64,7 @@ void freeBinTree(binTree* t)
 
 binTree* findFirstEmpty(binTree* t)
 {
-    if (!t->next1 && !t->next2 && !t->val[0])
+    if (!t->val[0])
         return t;
 
     binTree *res = t, *tmp = NULL;
@@ -79,11 +79,17 @@ binTree* findFirstEmpty(binTree* t)
     initBinTree(new);
 
     if (tmp){
-        if (tmp->next1)
+        if (!tmp->val[0]) {
+            free(new);
+            new = tmp;
+        }
+        else if (tmp->next1)
             tmp->next2 = new;
         else
             tmp->next1 = new;
     }
+    else if (!res->next1)
+        res->next1 = new;
     else
         res->next2 = new;
 
