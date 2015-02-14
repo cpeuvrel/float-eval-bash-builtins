@@ -215,25 +215,26 @@ int isOpPrioAbove(char* op, int prio)
 
 int isOpCurrentPrio(char* op, int prio)
 {
-    char* opPrio[SIZE_SLOT] = {
-        "|",
-        "^",
-        "&",
-        "+-",
-        "*/%",
-        ""
+    char* opPrio[16][8] = {
+        {"|"},
+        {"^"},
+        {"&"},
+        {"+", "-"},
+        {"*", "/", "%"},
+        {""}
     };
     int i = 0;
 
     if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
-    if (!opPrio[prio][0])
+    if (!opPrio[prio][0][0])
        return -1;
 
     while (opPrio[prio][i]) {
-        if (op[0] == opPrio[prio][i++])
+        if (strncmp(op, opPrio[prio][i], strlen(opPrio[prio][i])) == 0)
             return 1;
+        i++;
     }
 
     return 0;
