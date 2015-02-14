@@ -95,6 +95,18 @@ static double computeAst(binTree* ast)
             if (ast->val[1] == '|')
                 return (int)computeAst(ast->next1) || (int)computeAst(ast->next2);
             return (int)computeAst(ast->next1) | (int)computeAst(ast->next2);
+        case '<':
+            if (ast->val[1] == '=')
+                return (int)computeAst(ast->next1) <= (int)computeAst(ast->next2);
+            return (int)computeAst(ast->next1) < (int)computeAst(ast->next2);
+        case '>':
+            if (ast->val[1] == '=')
+                return (int)computeAst(ast->next1) >= (int)computeAst(ast->next2);
+            return (int)computeAst(ast->next1) > (int)computeAst(ast->next2);
+        case '=':
+            return (int)computeAst(ast->next1) == (int)computeAst(ast->next2);
+        case '!':
+            return (int)computeAst(ast->next1) != (int)computeAst(ast->next2);
     }
     return 0;
 }
@@ -229,6 +241,8 @@ int isOpCurrentPrio(char* op, int prio)
         {"|"},
         {"^"},
         {"&"},
+        {"==", "!="},
+        {"<=", ">=", "<", ">"},
         {"+", "-"},
         {"*", "/", "%"},
         {""}
@@ -273,6 +287,10 @@ static int writeOp(char* target, char* str)
     char op2[32][3] = {
         "||",
         "&&",
+        "<=",
+        ">=",
+        "==",
+        "!=",
         ""
     };
 
