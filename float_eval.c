@@ -149,6 +149,8 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
             initBinTree(fstTmp);
             binTree *t = fst;
 
+            t = findNodeToSwapModulo(fst, NULL);
+
             strncpy(fstTmp->val, t->val, SIZE_SLOT);
             fstTmp->next1 = t->next1;
             fstTmp->next2 = t->next2;
