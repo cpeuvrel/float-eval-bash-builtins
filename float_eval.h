@@ -34,5 +34,24 @@
 #include "binTree.h"
 
 double float_eval(char* str);
+int float_eval_builtin(WORD_LIST *list);
+
+/*  builtin short documentation */
+char float_eval_short_doc[] = "float_eval STRING...";
+
+/*  builtin long documentation */
+char *float_eval_long_doc[] = {
+    "Give one a several arithmetic strings to be parsed",
+    NULL
+};
+
+struct builtin float_eval_struct = {
+    "float_eval",
+    float_eval_builtin,
+    BUILTIN_ENABLED,
+    float_eval_long_doc,
+    float_eval_short_doc,
+    0
+};
 
 #endif /* end of include guard: FLOAT-EVAL_H */

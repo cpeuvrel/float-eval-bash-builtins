@@ -34,6 +34,20 @@ int main(int argc, const char *argv[])
     return 0;
 }
 
+int float_eval_builtin(WORD_LIST *list)
+{
+    if (!HAS_WORD(list)) {
+        builtin_usage();
+        return EX_USAGE;
+    }
+
+    while (HAS_WORD(list)) {
+        printf("%f\n", float_eval(list->word->word));
+    }
+
+    return EXECUTION_SUCCESS;
+}
+
 double float_eval(char* str)
 {
     double res = 0;
