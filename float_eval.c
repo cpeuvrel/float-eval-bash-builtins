@@ -117,7 +117,7 @@ static void tokenify(char *str, binTree* ast, char op, int pass, int start, char
     for (;;str++) {
         switch (*str) {
             case '(':
-                if ( parentheses == 0 )
+                if ( parentheses == 0 && beginParentheses)
                     beginParentheses++;
                 parentheses++;
                 break;
