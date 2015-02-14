@@ -221,3 +221,20 @@ int isOpCurrentPrio(char op, int prio)
 
     return 0;
 }
+
+binTree* findNodeToSwapModulo(binTree* t, binTree* save)
+{
+    binTree* left = NULL;
+    if (save == NULL)
+        save = t;
+
+    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val[0], 4))
+        return findNodeToSwapModulo(t->next2, NULL);
+
+    if (left)
+        return findNodeToSwapModulo(t->next1, NULL);
+    else if (t->next2)
+        return findNodeToSwapModulo(t->next2, save);
+
+    return save;
+}
