@@ -18,6 +18,7 @@
 #include "float_eval.h"
 static double computeAst(binTree* ast);
 static void tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
+static void writeOp(char* target, char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -254,4 +255,25 @@ binTree* findNodeToSwapModulo(binTree* t, binTree* save)
         return findNodeToSwapModulo(t->next2, save);
 
     return save;
+}
+
+static void writeOp(char* target, char* str)
+{
+    int i = 0;
+    char op2[32][3] = {
+        "||",
+        "&&",
+        ""
+    };
+
+    for (i = 0; op2[i][0] ; i++) {
+        if (strncmp(op2[i], str , 2) == 0){
+            strncpy(target, op2[i] , 2);
+            target[2] = 0;
+            return;
+        }
+    }
+
+    target[0] = str[0];
+    target[1] = 0;
 }
