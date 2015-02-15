@@ -18,7 +18,7 @@
 #include "float_eval.h"
 static double computeAst(binTree* ast);
 static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
-static int writeOp(char* target, char* str);
+static int writeOp(binTree* t, char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -143,7 +143,7 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
             snprintf(fst->val, SIZE_SLOT,"%s", str);
             return 0;
         }
-        offset = writeOp(fst->val, op);
+        offset = writeOp(fst, op);
     }
 
     for (;;str++) {
@@ -286,7 +286,7 @@ binTree* findNodeToSwapModulo(binTree* t, binTree* save)
     return save;
 }
 
-static int writeOp(char* target, char* str)
+static int writeOp(binTree* t, char* str)
 {
     int i = 0;
     char op2[32][3] = {
@@ -300,16 +300,28 @@ static int writeOp(char* target, char* str)
         ">>",
         ""
     };
+    char opUn[32] = "!" ;
 
     for (i = 0; op2[i][0] ; i++) {
         if (strncmp(op2[i], str , 2) == 0){
-            strncpy(target, op2[i] , 2);
-            target[2] = 0;
+            strncpy(t->val, op2[i] , 2);
+            t->val[2] = 0;
             return 1;
         }
     }
 
-    target[0] = str[0];
-    target[1] = 0;
+    for (i = 0; opUn[i] ; i++) {
+         if (*str == opUn[i]) {
+             binTree *empty = malloc(sizeof(binTree));
+             initBinTree(empty);
+             empty->val[0] = '0';
+             empty->val[1] = 0;
+             t->next1 = empty;
+             break;
+         }
+    }
+
+    t->val[0] = str[0];
+    t->val[1] = 0;
     return 0;
 }
