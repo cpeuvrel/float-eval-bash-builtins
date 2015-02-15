@@ -110,7 +110,9 @@ static double computeAst(binTree* ast)
         case '=':
             return (int)computeAst(ast->next1) == (int)computeAst(ast->next2);
         case '!':
-            return (int)computeAst(ast->next1) != (int)computeAst(ast->next2);
+            if (ast->val[1] == '=')
+                return (int)computeAst(ast->next1) != (int)computeAst(ast->next2);
+            return ! (int)computeAst(ast->next2);
     }
     return 0;
 }
@@ -250,6 +252,7 @@ int isOpCurrentPrio(char* op, int prio)
         {"<<", ">>"},
         {"+", "-"},
         {"*", "/", "%"},
+        {"!"},
         {""}
     };
     int i = 0;
