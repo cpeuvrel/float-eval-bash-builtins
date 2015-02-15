@@ -19,6 +19,8 @@ You can use every common operations :
   - expression in parentheses `(...)` (may be on several levels `(3 * (1+2))`)
   - comparaisons `==` `!=` `<` `<=` `>` `>=`
   - combinaisons `||` `&&`
+  - Not `!`
+  - Bitwise not `~`
   
 Note that comparaisons and combinaisons results in a boolean : `1` == `true` and `0` == `false`
 
@@ -27,8 +29,6 @@ You can look `test.sh` to see all operations and their combinaisons that are kno
 # Not yet supported
   - Scientific notation `1.00E+003`
   - Set wanted precision
-  - Not `!`
-  - Bitwise not `~`
   
 # Benchmarks
 You can do a simple benchmark by executing `./test.sh` (it will also check that the builtin's behavior is as expected).
