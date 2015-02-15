@@ -22,8 +22,9 @@ static int writeOp(binTree* t, char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
-    char res[SIZE_SLOT] = "";
+    char res[SIZE_SLOT] = "", outputFormat[17] = "";
     int flags = 0;
+    double precision = 3;
 
     if (!HAS_WORD(list)) {
         builtin_usage();
@@ -34,12 +35,24 @@ int float_eval_builtin(WORD_LIST *list)
         if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
             strncmp("--verbose", list->word->word, SIZE_SLOT) == 0)
             flags |= FLOAT_OPT_VERBOSE;
+        else if (strncmp("-p", list->word->word, SIZE_SLOT) == 0 ||
+                strncmp("--precision", list->word->word, SIZE_SLOT) == 0) {
+            char* end = NULL;
+            precision = strtod(list->next->word->word, &end);
+
+            if (!HAS_WORD(list->next->next) || end[0]) {
+                builtin_error("You must give an integer next to '-p' option");
+                return EXECUTION_FAILURE;
+            }
+        }
 
         list = list->next;
     }
 
+    snprintf(outputFormat, 16, "%%.%df", (int) precision);
+
     strncpy(res, list->word->word , SIZE_SLOT);
-    snprintf(res, SIZE_SLOT,"%f", float_eval(res, flags));
+    snprintf(res, SIZE_SLOT,outputFormat, float_eval(res, flags));
 
     if (bind_variable("REPLY", res, 0) == NULL) {
         builtin_error("Failed to bind variable: REPLY");
