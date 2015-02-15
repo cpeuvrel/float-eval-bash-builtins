@@ -113,6 +113,8 @@ static double computeAst(binTree* ast)
             if (ast->val[1] == '=')
                 return (int)computeAst(ast->next1) != (int)computeAst(ast->next2);
             return ! (int)computeAst(ast->next2);
+        case '~':
+            return ~ (int)computeAst(ast->next2);
     }
     return 0;
 }
@@ -252,7 +254,7 @@ int isOpCurrentPrio(char* op, int prio)
         {"<<", ">>"},
         {"+", "-"},
         {"*", "/", "%"},
-        {"!"},
+        {"!", "~"},
         {""}
     };
     int i = 0;
@@ -303,7 +305,7 @@ static int writeOp(binTree* t, char* str)
         ">>",
         ""
     };
-    char opUn[32] = "!" ;
+    char opUn[32] = "!~" ;
 
     for (i = 0; op2[i][0] ; i++) {
         if (strncmp(op2[i], str , 2) == 0){

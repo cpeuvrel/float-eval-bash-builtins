@@ -133,6 +133,7 @@ int isOp(char str)
         case '>':
         case '=':
         case '!':
+        case '~':
             return 1;
     }
     return 0;
