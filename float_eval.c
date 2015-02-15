@@ -231,7 +231,7 @@ int isOpPrioAbove(char* op, int prio)
     if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
-    while ((res = isOpCurrentPrio(op,prio++)) == 0) {}
+    while ((res = isOpCurrentPrio(op,++prio)) == 0) {}
 
     if (res == -1)
         return 0;
