@@ -21,6 +21,8 @@ You can use every common operations :
   - combinaisons `||` `&&`
   
 Note that comparaisons and combinaisons results in a boolean : `1` == `true` and `0` == `false`
+
+You can look `test.sh` to see all operations and their combinaisons that are known to work.
   
 # Not yet supported
   - Scientific notation `1.00E+003`
