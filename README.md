@@ -22,13 +22,15 @@ You can use every common operations :
   - Not `!`
   - Bitwise not `~`
   - Set wanted precision (-p INTEGER)
+  - Scientific notation `1.00E+003`
   
 Note that comparaisons and combinaisons results in a boolean : `1` == `true` and `0` == `false`
+
+Scientific notation is a decimal number (possibly with a dot) followed by an 'E' or 'e', optionally followed with a plus or minus sign, followed by decimal digits. It indicates multiplication by a power of 10 (cf man of strtod).
 
 You can look `test.sh` to see all operations and their combinaisons that are known to work.
   
 # Not yet supported
-  - Scientific notation `1.00E+003`
   - Several evaluations at once (with REPLY an array to store the several results).
   - Syntax check
   - Error handling
