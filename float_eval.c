@@ -19,6 +19,7 @@
 static double computeAst(binTree* ast);
 static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
 static int writeOp(binTree* t, char* str);
+static int hookScientificNotation(char* str, char* curr, int* pos_curr);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -173,6 +174,10 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
             case ')':
                 parentheses--;
                 break;
+            case 'e':
+            case 'E':
+                str += hookScientificNotation(str, curr, &pos_curr);
+                continue;
             case '\t':
             case ' ':
                 continue;
@@ -342,4 +347,25 @@ static int writeOp(binTree* t, char* str)
     t->val[0] = str[0];
     t->val[1] = 0;
     return 0;
+}
+
+static int hookScientificNotation(char* str, char* curr, int* pos_curr)
+{
+    int offset = 1;
+    curr += *pos_curr;
+
+    // The 'E'
+    *(curr++) = *(str++);
+    (*pos_curr)++;
+    // Either '+' '-' or the first number of the exponent
+    *(curr++) = *(str++);
+    (*pos_curr)++;
+
+    while (*str && !isOp(*str)){
+        *(curr++) = *(str++);
+        (*pos_curr)++;
+        offset++;
+    }
+
+    return offset;
 }
