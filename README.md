@@ -29,6 +29,9 @@ You can look `test.sh` to see all operations and their combinaisons that are kno
   
 # Not yet supported
   - Scientific notation `1.00E+003`
+  - Several evaluations at once (with REPLY an array to store the several results).
+  - Syntax check
+  - Error handling
   
 # Benchmarks
 You can do a simple benchmark by executing `./test.sh` (it will also check that the builtin's behavior is as expected).
