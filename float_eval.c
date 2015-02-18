@@ -72,8 +72,10 @@ double float_eval(char* str, int flags)
     tokenify(str, ast, "", 0, 1, 0);
 
     res = computeAst(ast);
-    if (flags & FLOAT_OPT_VERBOSE)
+    if (flags & FLOAT_OPT_VERBOSE) {
+        printf("==> %s\n", str);
         printBinTree(ast);
+    }
 
     freeBinTree(ast);
 
