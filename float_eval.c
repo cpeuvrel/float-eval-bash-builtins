@@ -176,6 +176,8 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
                 break;
             case 'e':
             case 'E':
+                if (parentheses != 0)
+                    break;
                 str += hookScientificNotation(str, curr, &pos_curr);
                 continue;
             case '\t':
