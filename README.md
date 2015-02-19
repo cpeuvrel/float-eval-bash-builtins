@@ -42,9 +42,10 @@ You can do a simple benchmark by executing `./test.sh` (it will also check that 
 It will compare the performances of the builtin and a bash function using `bc` on 1k iterations
 (you can change that by setting $NB in the environment `NB=10000 ./test.sh`).
 
-In my tests, the bash version is +/- 100 time slower than the builtin. For 100k iterations :
-  - Builtin : 0.944s
-  - Bash (bc) : 93.335s
+In my tests, the bash version is +/- 100 time slower than the builtin (200 if one builtin call). For 100k iterations :
+  - Builtin : 1.048s
+  - Builtin (with one call of 100k args) : 0.452s
+  - Bash (bc) : 91.306s
 
 # Notes
 I added a directory `bash-headers-4.1.2-9.el6_2.x86_64` (as provided in CentOS 6) with all bash's headers. Feel free to test with another version, it shouldn't be a problem.
