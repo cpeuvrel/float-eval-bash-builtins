@@ -27,7 +27,7 @@ static int isOpPrioAbove(char* op, int prio);
 
 int float_eval_builtin(WORD_LIST *list)
 {
-    char res[SIZE_SLOT] = "", outputFormat[17] = "";
+    char res[SIZE_SLOT] = "", outputFormat[17] = "%.3f";
     int flags = 0, i = 0;
     double precision = 3;
 
