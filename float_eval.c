@@ -17,9 +17,13 @@
 
 #include "float_eval.h"
 static double computeAst(binTree* ast);
+static binTree* findNodeToSwapModulo(binTree* t, binTree* save);
 static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
 static int writeOp(binTree* t, char* str);
 static int hookScientificNotation(char* str, char* curr, int* pos_curr);
+static int writeOp(binTree* t, char* str);
+static int isOpCurrentPrio(char* op, int prio);
+static int isOpPrioAbove(char* op, int prio);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -248,7 +252,7 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
     return offset;
 }
 
-int isOpPrioAbove(char* op, int prio)
+static int isOpPrioAbove(char* op, int prio)
 {
     int res = 0;
 
@@ -263,7 +267,7 @@ int isOpPrioAbove(char* op, int prio)
 
 }
 
-int isOpCurrentPrio(char* op, int prio)
+static int isOpCurrentPrio(char* op, int prio)
 {
     char* opPrio[16][8] = {
         {"||"},
@@ -296,7 +300,7 @@ int isOpCurrentPrio(char* op, int prio)
     return 0;
 }
 
-binTree* findNodeToSwapModulo(binTree* t, binTree* save)
+static binTree* findNodeToSwapModulo(binTree* t, binTree* save)
 {
     binTree* left = NULL;
     if (save == NULL)
