@@ -28,7 +28,7 @@ static int isOpPrioAbove(char* op, int prio);
 int float_eval_builtin(WORD_LIST *list)
 {
     char res[SIZE_SLOT] = "", outputFormat[17] = "";
-    int flags = 0;
+    int flags = 0, i = 0;
     double precision = 3;
 
     if (!HAS_WORD(list)) {
@@ -36,7 +36,14 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
-    for (; HAS_WORD(list); list = list->next) {
+    SHELL_VAR *replyInit = make_new_array_variable("REPLY");
+    if (array_p(replyInit) == 0) {
+        builtin_error("Failed to bind array: REPLY");
+        return EXECUTION_FAILURE;
+    }
+    ARRAY *reply = array_cell(replyInit);
+
+    for (i = 0; HAS_WORD(list); list = list->next) {
         if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
             strncmp("--verbose", list->word->word, SIZE_SLOT) == 0) {
             flags |= FLOAT_OPT_VERBOSE;
@@ -55,16 +62,15 @@ int float_eval_builtin(WORD_LIST *list)
             continue;
         }
 
-    }
+        snprintf(outputFormat, 16, "%%.%df", (int) precision);
 
-    snprintf(outputFormat, 16, "%%.%df", (int) precision);
+        strncpy(res, list->word->word , SIZE_SLOT);
+        snprintf(res, SIZE_SLOT,outputFormat, float_eval(res, flags));
 
-    strncpy(res, list->word->word , SIZE_SLOT);
-    snprintf(res, SIZE_SLOT,outputFormat, float_eval(res, flags));
+        if(array_insert(reply, i, res) < 0)
+            printf("Insert failed\n");
 
-    if (bind_variable("REPLY", res, 0) == NULL) {
-        builtin_error("Failed to bind variable: REPLY");
-        return EXECUTION_FAILURE;
+        i++;
     }
 
     return EXECUTION_SUCCESS;
