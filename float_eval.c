@@ -36,10 +36,12 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
-    while (HAS_WORD(list->next)) {
+    for (; HAS_WORD(list); list = list->next) {
         if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
-            strncmp("--verbose", list->word->word, SIZE_SLOT) == 0)
+            strncmp("--verbose", list->word->word, SIZE_SLOT) == 0) {
             flags |= FLOAT_OPT_VERBOSE;
+            continue;
+        }
         else if (strncmp("-p", list->word->word, SIZE_SLOT) == 0 ||
                 strncmp("--precision", list->word->word, SIZE_SLOT) == 0) {
             char* end = NULL;
@@ -49,9 +51,10 @@ int float_eval_builtin(WORD_LIST *list)
                 builtin_error("You must give an integer next to '-p' option");
                 return EXECUTION_FAILURE;
             }
+            list = list->next;
+            continue;
         }
 
-        list = list->next;
     }
 
     snprintf(outputFormat, 16, "%%.%df", (int) precision);
