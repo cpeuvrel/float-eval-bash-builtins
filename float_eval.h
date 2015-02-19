@@ -45,7 +45,8 @@ char float_eval_short_doc[] = "float_eval [-v] [-p INTEGER] STRING...";
 
 /*  builtin long documentation */
 char *float_eval_long_doc[] = {
-    "Give one arithmetic string to be parsed in a double",
+    "Give one or more arithmetic string to be parsed in a double",
+    "The result(s) will be store in bash array $REPLY",
     "Use -v/--verbose to show the syntax tree constructed",
     "Use -p/--precision to set the number of decimal wanted",
     NULL
