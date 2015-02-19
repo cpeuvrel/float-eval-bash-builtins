@@ -58,11 +58,12 @@ int float_eval_builtin(WORD_LIST *list)
                 builtin_error("You must give an integer next to '-p' option");
                 return EXECUTION_FAILURE;
             }
+
+            snprintf(outputFormat, 16, "%%.%df", (int) precision);
+
             list = list->next;
             continue;
         }
-
-        snprintf(outputFormat, 16, "%%.%df", (int) precision);
 
         strncpy(res, list->word->word , SIZE_SLOT);
         snprintf(res, SIZE_SLOT,outputFormat, float_eval(res, flags));
