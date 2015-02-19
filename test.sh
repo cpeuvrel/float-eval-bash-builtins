@@ -112,6 +112,8 @@ bash -c "enable -f $PWD/float_eval.so float_eval; time for (( i = 0; i < $NB; i+
 echo "--> Builtins one shot"
 bash -c "enable -f $PWD/float_eval.so float_eval; for (( i = 0; i < $NB; i++ )); do to_eval+=( '1+2' ) ; done ; time float_eval \${to_eval[@]}"
 
+[[ "$NO_BENCH_BC" ]] && exit 0
+
 echo -e "\n--> Bash (bc)"
 time for (( i = 0; i < $NB; i++ )); do
     float_eval_bash "1+2"
