@@ -12,6 +12,8 @@ You can now use `float_eval "1+2"` and you'll get the result in $REPLY.
 
 You may use `float_eval -v "1+2"` to display the syntax tree.
 
+You can ask for several calculations at once `float_eval "1+2" "2*3" "8%3"` and $REPLY will store them as an array (REPLY[0]=3 REPLY[1]=6 REPLY[2]=2).
+
 # Supported operations
 You can use every common operations :
   - `+` `-` `*` `/` and `%` (modulo)
@@ -31,7 +33,6 @@ Scientific notation is a decimal number (possibly with a dot) followed by an 'E'
 You can look `test.sh` to see all operations and their combinaisons that are known to work.
   
 # Not yet supported
-  - Several evaluations at once (with REPLY an array to store the several results).
   - Syntax check
   - Error handling
   
