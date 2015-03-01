@@ -24,6 +24,7 @@ static int hook_scientific_notation(char* str, char* curr, int* pos_curr);
 static int write_op(bin_tree* t, char* str);
 static int is_op_current_prio(char* op, int prio);
 static int is_op_prio_above(char* op, int prio);
+static int check_syntax(char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
@@ -66,6 +67,10 @@ int float_eval_builtin(WORD_LIST *list)
         }
 
         strncpy(res, list->word->word , SIZE_SLOT);
+
+        if (check_syntax(res))
+            return EXECUTION_FAILURE;
+
         snprintf(res, SIZE_SLOT,output_format, float_eval(res, flags));
 
         if(array_insert(reply, i, res) < 0)
@@ -386,4 +391,27 @@ static int hook_scientific_notation(char* str, char* curr, int* pos_curr)
     }
 
     return offset;
+}
+
+static int check_syntax(char* str)
+{
+    int parentheses = 0;
+
+    for (;*str; str++) {
+        switch (*str) {
+            case '(':
+                parentheses++;
+                break;
+            case ')':
+                parentheses--;
+                break;
+        }
+    }
+
+    if (parentheses) {
+        builtin_error("Unbalenced parentheses");
+        return 1;
+    }
+
+    return 0;
 }
