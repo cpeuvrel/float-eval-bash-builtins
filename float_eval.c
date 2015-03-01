@@ -395,7 +395,7 @@ static int hook_scientific_notation(char* str, char* curr, int* pos_curr)
 
 static int check_syntax(char* str)
 {
-    int parentheses = 0;
+    int parentheses = 0, unbalenced = 0;
 
     for (;*str; str++) {
         switch (*str) {
@@ -406,9 +406,12 @@ static int check_syntax(char* str)
                 parentheses--;
                 break;
         }
+
+        if (parentheses < 0)
+            unbalenced = 1;
     }
 
-    if (parentheses) {
+    if (parentheses || unbalenced) {
         builtin_error("Unbalenced parentheses");
         return 1;
     }
