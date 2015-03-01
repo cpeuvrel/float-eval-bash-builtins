@@ -35,7 +35,7 @@
 #define HAS_WORD(wordlist) \
         ((wordlist) && (wordlist)->word && (wordlist)->word->word)
 
-#include "binTree.h"
+#include "bin_tree.h"
 
 double float_eval(char* str, int flags);
 int float_eval_builtin(WORD_LIST *list);

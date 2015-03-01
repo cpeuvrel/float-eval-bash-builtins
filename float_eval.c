@@ -16,18 +16,18 @@
  */
 
 #include "float_eval.h"
-static double computeAst(binTree* ast);
-static binTree* findNodeToSwapModulo(binTree* t, binTree* save);
-static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp);
-static int writeOp(binTree* t, char* str);
-static int hookScientificNotation(char* str, char* curr, int* pos_curr);
-static int writeOp(binTree* t, char* str);
-static int isOpCurrentPrio(char* op, int prio);
-static int isOpPrioAbove(char* op, int prio);
+static double compute_ast(bin_tree* ast);
+static bin_tree* find_node_to_swap_modulo(bin_tree* t, bin_tree* save);
+static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op);
+static int write_op(bin_tree* t, char* str);
+static int hook_scientific_notation(char* str, char* curr, int* pos_curr);
+static int write_op(bin_tree* t, char* str);
+static int is_op_current_prio(char* op, int prio);
+static int is_op_prio_above(char* op, int prio);
 
 int float_eval_builtin(WORD_LIST *list)
 {
-    char res[SIZE_SLOT] = "", outputFormat[17] = "%.3f";
+    char res[SIZE_SLOT] = "", output_format[17] = "%.3f";
     int flags = 0, i = 0;
     double precision = 3;
 
@@ -36,12 +36,12 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
-    SHELL_VAR *replyInit = make_new_array_variable("REPLY");
-    if (array_p(replyInit) == 0) {
+    SHELL_VAR *reply_init = make_new_array_variable("REPLY");
+    if (array_p(reply_init) == 0) {
         builtin_error("Failed to bind array: REPLY");
         return EXECUTION_FAILURE;
     }
-    ARRAY *reply = array_cell(replyInit);
+    ARRAY *reply = array_cell(reply_init);
 
     for (i = 0; HAS_WORD(list); list = list->next) {
         if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
@@ -59,14 +59,14 @@ int float_eval_builtin(WORD_LIST *list)
                 return EXECUTION_FAILURE;
             }
 
-            snprintf(outputFormat, 16, "%%.%df", (int) precision);
+            snprintf(output_format, 16, "%%.%df", (int) precision);
 
             list = list->next;
             continue;
         }
 
         strncpy(res, list->word->word , SIZE_SLOT);
-        snprintf(res, SIZE_SLOT,outputFormat, float_eval(res, flags));
+        snprintf(res, SIZE_SLOT,output_format, float_eval(res, flags));
 
         if(array_insert(reply, i, res) < 0)
             printf("Insert failed\n");
@@ -80,89 +80,89 @@ int float_eval_builtin(WORD_LIST *list)
 double float_eval(char* str, int flags)
 {
     double res = 0;
-    binTree *ast = malloc(sizeof(binTree));
-    initBinTree(ast);
+    bin_tree *ast = malloc(sizeof(bin_tree));
+    init_bin_tree(ast);
 
     tokenify(str, ast, "", 0, 1, 0);
 
-    res = computeAst(ast);
+    res = compute_ast(ast);
     if (flags & FLOAT_OPT_VERBOSE) {
         printf("==> %s\n", str);
-        printBinTree(ast);
+        print_bin_tree(ast);
     }
 
-    freeBinTree(ast);
+    free_bin_tree(ast);
 
     return res;
 }
 
-static double computeAst(binTree* ast)
+static double compute_ast(bin_tree* ast)
 {
     //TODO: Check endptr to see if we miss sth
     if (!ast)
         return 0;
-    else if (! isOp(ast->val[0]) || (ast->val[0] == '-' && ast->val[1]))
+    else if (! is_op(ast->val[0]) || (ast->val[0] == '-' && ast->val[1]))
         return strtod(ast->val, NULL);
 
     switch (ast->val[0]) {
         case '+':
-            return computeAst(ast->next1) + computeAst(ast->next2);
+            return compute_ast(ast->next1) + compute_ast(ast->next2);
         case '-':
-            return computeAst(ast->next1) - computeAst(ast->next2);
+            return compute_ast(ast->next1) - compute_ast(ast->next2);
         case '*':
-            return computeAst(ast->next1) * computeAst(ast->next2);
+            return compute_ast(ast->next1) * compute_ast(ast->next2);
         case '/':
-            return computeAst(ast->next1) / computeAst(ast->next2);
+            return compute_ast(ast->next1) / compute_ast(ast->next2);
         case '%':
-            return (int)computeAst(ast->next1) % (int)computeAst(ast->next2);
+            return (int)compute_ast(ast->next1) % (int)compute_ast(ast->next2);
         case '&':
             if (ast->val[1] == '&')
-                return (int)computeAst(ast->next1) && (int)computeAst(ast->next2);
-            return (int)computeAst(ast->next1) & (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) && (int)compute_ast(ast->next2);
+            return (int)compute_ast(ast->next1) & (int)compute_ast(ast->next2);
         case '^':
-            return (int)computeAst(ast->next1) ^ (int)computeAst(ast->next2);
+            return (int)compute_ast(ast->next1) ^ (int)compute_ast(ast->next2);
         case '|':
             if (ast->val[1] == '|')
-                return (int)computeAst(ast->next1) || (int)computeAst(ast->next2);
-            return (int)computeAst(ast->next1) | (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) || (int)compute_ast(ast->next2);
+            return (int)compute_ast(ast->next1) | (int)compute_ast(ast->next2);
         case '<':
             if (ast->val[1] == '=')
-                return (int)computeAst(ast->next1) <= (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) <= (int)compute_ast(ast->next2);
             if (ast->val[1] == '<')
-                return (int)computeAst(ast->next1) << (int)computeAst(ast->next2);
-            return (int)computeAst(ast->next1) < (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) << (int)compute_ast(ast->next2);
+            return (int)compute_ast(ast->next1) < (int)compute_ast(ast->next2);
         case '>':
             if (ast->val[1] == '=')
-                return (int)computeAst(ast->next1) >= (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) >= (int)compute_ast(ast->next2);
             else if (ast->val[1] == '>')
-                return (int)computeAst(ast->next1) >> (int)computeAst(ast->next2);
-            return (int)computeAst(ast->next1) > (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) >> (int)compute_ast(ast->next2);
+            return (int)compute_ast(ast->next1) > (int)compute_ast(ast->next2);
         case '=':
-            return (int)computeAst(ast->next1) == (int)computeAst(ast->next2);
+            return (int)compute_ast(ast->next1) == (int)compute_ast(ast->next2);
         case '!':
             if (ast->val[1] == '=')
-                return (int)computeAst(ast->next1) != (int)computeAst(ast->next2);
-            return ! (int)computeAst(ast->next2);
+                return (int)compute_ast(ast->next1) != (int)compute_ast(ast->next2);
+            return ! (int)compute_ast(ast->next2);
         case '~':
-            return ~ (int)computeAst(ast->next2);
+            return ~ (int)compute_ast(ast->next2);
     }
     return 0;
 }
 
-static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char prevOp)
+static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
     char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
-    binTree *fst = ast;
+    bin_tree *fst = ast;
 
-    int beginParentheses = str[0] == '(' ? 1 : 0;
+    int begin_parentheses = str[0] == '(' ? 1 : 0;
 
-    int beginSub = str[0] == '-' ? 1 : 0;
-    if (beginSub) {
+    int begin_sub = str[0] == '-' ? 1 : 0;
+    if (begin_sub) {
         if (start && str[1] == '(') {
             snprintf(tmp, SIZE_SLOT,"0%s", str);
-            beginParentheses = 0;
-            beginSub = 0;
+            begin_parentheses = 0;
+            begin_sub = 0;
             strncpy(str, tmp , SIZE_SLOT);
             str[SIZE_SLOT-1] = 0;
         }
@@ -171,20 +171,20 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
     }
 
     if (!start) {
-        fst = findFirstEmpty(ast);
+        fst = find_first_empty(ast);
 
-        if (op[0] == 0 && !beginParentheses) {
+        if (op[0] == 0 && !begin_parentheses) {
             snprintf(fst->val, SIZE_SLOT,"%s", str);
             return 0;
         }
-        offset = writeOp(fst, op);
+        offset = write_op(fst, op);
     }
 
     for (;;str++) {
         switch (*str) {
             case '(':
-                if ( parentheses == 0 && beginParentheses)
-                    beginParentheses++;
+                if ( parentheses == 0 && begin_parentheses)
+                    begin_parentheses++;
                 parentheses++;
                 break;
             case ')':
@@ -194,67 +194,67 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
             case 'E':
                 if (parentheses != 0)
                     break;
-                str += hookScientificNotation(str, curr, &pos_curr);
+                str += hook_scientific_notation(str, curr, &pos_curr);
                 continue;
             case '\t':
             case ' ':
                 continue;
         }
 
-        if (parentheses == 0 && isOpPrioAbove(str,pass))
+        if (parentheses == 0 && is_op_prio_above(str,pass))
             found_next_op++;
 
         if (*str != '\0' && ((*str >= '0' && *str <= '9') || parentheses != 0 ||
                 *str == '.' ||
-                (*str == ')' && (beginParentheses != 2 || *(str+1))) ||
-                (*str != ')' && !isOpCurrentPrio(str, pass)))) {
+                (*str == ')' && (begin_parentheses != 2 || *(str+1))) ||
+                (*str != ')' && !is_op_current_prio(str, pass)))) {
             curr[pos_curr++] = *str;
             continue;
         }
 
         curr[pos_curr] = '\0';
 
-        if (prevOp && *str && (*str == '%' || prevOp == '%') ) {
-            binTree *newRoot = malloc(sizeof(binTree));
-            initBinTree(newRoot);
-            binTree *fstTmp = malloc(sizeof(binTree));
-            initBinTree(fstTmp);
-            binTree *t = fst;
+        if (prev_op && *str && (*str == '%' || prev_op == '%') ) {
+            bin_tree *new_root = malloc(sizeof(bin_tree));
+            init_bin_tree(new_root);
+            bin_tree *fst_tmp = malloc(sizeof(bin_tree));
+            init_bin_tree(fst_tmp);
+            bin_tree *t = fst;
 
-            t = findNodeToSwapModulo(fst, NULL);
+            t = find_node_to_swap_modulo(fst, NULL);
 
-            strncpy(fstTmp->val, t->val, SIZE_SLOT);
-            fstTmp->next1 = t->next1;
-            fstTmp->next2 = t->next2;
+            strncpy(fst_tmp->val, t->val, SIZE_SLOT);
+            fst_tmp->next1 = t->next1;
+            fst_tmp->next2 = t->next2;
 
-            newRoot->next1 = fstTmp;
+            new_root->next1 = fst_tmp;
 
-            strncpy(t->val, newRoot->val, SIZE_SLOT);
-            t->next1 = newRoot->next1;
-            t->next2 = newRoot->next2;
+            strncpy(t->val, new_root->val, SIZE_SLOT);
+            t->next1 = new_root->next1;
+            t->next2 = new_root->next2;
 
-            free(newRoot);
+            free(new_root);
         }
 
-        if (beginSub && pass == SUM_LVL) {
-            beginSub = 0;
+        if (begin_sub && pass == SUM_LVL) {
+            begin_sub = 0;
             snprintf(tmp, SIZE_SLOT,"-%s", curr);
             i = tokenify(tmp, ast, str, 0, 0, 0);
         }
-        else if (beginParentheses == 2 && *str == ')')
+        else if (begin_parentheses == 2 && *str == ')')
             i = tokenify(1+curr, fst, "", 0, 1, 0);
         else if (*str == '\0' && found_next_op)
             i = tokenify(curr, ast, "", ++pass, 1, 0);
         else if (start || (!start && curr[0]))
-            i = tokenify(curr, fst, str, 0, 0, prevOp);
+            i = tokenify(curr, fst, str, 0, 0, prev_op);
 
         pos_curr = 0 ;
 
         for (; i > 0; i--)
             str++;
 
-        if (isOp(*str))
-           prevOp = *str;
+        if (is_op(*str))
+           prev_op = *str;
 
         if (! *str)
             break;
@@ -262,14 +262,14 @@ static int tokenify(char *str, binTree* ast, char* op, int pass, int start, char
     return offset;
 }
 
-static int isOpPrioAbove(char* op, int prio)
+static int is_op_prio_above(char* op, int prio)
 {
     int res = 0;
 
     if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
-    while ((res = isOpCurrentPrio(op,++prio)) == 0) {}
+    while ((res = is_op_current_prio(op,++prio)) == 0) {}
 
     if (res == -1)
         return 0;
@@ -277,9 +277,9 @@ static int isOpPrioAbove(char* op, int prio)
 
 }
 
-static int isOpCurrentPrio(char* op, int prio)
+static int is_op_current_prio(char* op, int prio)
 {
-    char* opPrio[16][8] = {
+    char* op_prio[16][8] = {
         {"||"},
         {"&&"},
         {"|"},
@@ -298,11 +298,11 @@ static int isOpCurrentPrio(char* op, int prio)
     if ((op[0] >= '0' && op[0] <= '9') || op[0] == '.' || op[0] == '\0')
         return 0;
 
-    if (!opPrio[prio][0][0])
+    if (!op_prio[prio][0][0])
        return -1;
 
-    while (opPrio[prio][i]) {
-        if (strncmp(op, opPrio[prio][i], strlen(opPrio[prio][i])) == 0)
+    while (op_prio[prio][i]) {
+        if (strncmp(op, op_prio[prio][i], strlen(op_prio[prio][i])) == 0)
             return 1;
         i++;
     }
@@ -310,24 +310,24 @@ static int isOpCurrentPrio(char* op, int prio)
     return 0;
 }
 
-static binTree* findNodeToSwapModulo(binTree* t, binTree* save)
+static bin_tree* find_node_to_swap_modulo(bin_tree* t, bin_tree* save)
 {
-    binTree* left = NULL;
+    bin_tree* left = NULL;
     if (save == NULL)
         save = t;
 
-    if (!(left = findFirstLeftEmpty(t->next1)) && !isOpCurrentPrio(t->val, MULT_LVL))
-        return findNodeToSwapModulo(t->next2, NULL);
+    if (!(left = find_first_left_empty(t->next1)) && !is_op_current_prio(t->val, MULT_LVL))
+        return find_node_to_swap_modulo(t->next2, NULL);
 
     if (left)
-        return findNodeToSwapModulo(t->next1, NULL);
+        return find_node_to_swap_modulo(t->next1, NULL);
     else if (t->next2)
-        return findNodeToSwapModulo(t->next2, save);
+        return find_node_to_swap_modulo(t->next2, save);
 
     return save;
 }
 
-static int writeOp(binTree* t, char* str)
+static int write_op(bin_tree* t, char* str)
 {
     int i = 0;
     char op2[32][3] = {
@@ -341,7 +341,7 @@ static int writeOp(binTree* t, char* str)
         ">>",
         ""
     };
-    char opUn[32] = "!~" ;
+    char op_un[32] = "!~" ;
 
     for (i = 0; op2[i][0] ; i++) {
         if (strncmp(op2[i], str , 2) == 0){
@@ -351,10 +351,10 @@ static int writeOp(binTree* t, char* str)
         }
     }
 
-    for (i = 0; opUn[i] ; i++) {
-         if (*str == opUn[i]) {
-             binTree *empty = malloc(sizeof(binTree));
-             initBinTree(empty);
+    for (i = 0; op_un[i] ; i++) {
+         if (*str == op_un[i]) {
+             bin_tree *empty = malloc(sizeof(bin_tree));
+             init_bin_tree(empty);
              empty->val[0] = '0';
              empty->val[1] = 0;
              t->next1 = empty;
@@ -367,7 +367,7 @@ static int writeOp(binTree* t, char* str)
     return 0;
 }
 
-static int hookScientificNotation(char* str, char* curr, int* pos_curr)
+static int hook_scientific_notation(char* str, char* curr, int* pos_curr)
 {
     int offset = 1;
     curr += *pos_curr;
@@ -379,7 +379,7 @@ static int hookScientificNotation(char* str, char* curr, int* pos_curr)
     *(curr++) = *(str++);
     (*pos_curr)++;
 
-    while (*str && !isOp(*str)){
+    while (*str && !is_op(*str)){
         *(curr++) = *(str++);
         (*pos_curr)++;
         offset++;

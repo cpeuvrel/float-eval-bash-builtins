@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  binTree.c
+ *       Filename:  bin_tree.c
  *
  *    Description:  Utilities for binary trees
  *
@@ -15,23 +15,23 @@
  * =====================================================================================
  */
 
-#include "binTree.h"
-static void printBinTreeDepth(binTree*, int lvl, int pos);
-static int isLeafOp(binTree* t);
+#include "bin_tree.h"
+static void print_bin_tree_depth(bin_tree*, int lvl, int pos);
+static int is_leaf_op(bin_tree* t);
 
-void initBinTree(binTree* t)
+void init_bin_tree(bin_tree* t)
 {
     t->val[0] = 0;
     t->next1 = NULL;
     t->next2 = NULL;
 }
 
-void printBinTree(binTree* t)
+void print_bin_tree(bin_tree* t)
 {
-    printBinTreeDepth(t, 0, 2);
+    print_bin_tree_depth(t, 0, 2);
 }
 
-static void printBinTreeDepth(binTree* t, int lvl, int pos)
+static void print_bin_tree_depth(bin_tree* t, int lvl, int pos)
 {
     int i;
     for (i = 0; i < lvl; i++) {
@@ -48,35 +48,35 @@ static void printBinTreeDepth(binTree* t, int lvl, int pos)
     lvl++;
 
     if (t->next1)
-        printBinTreeDepth(t->next1, lvl, 1);
+        print_bin_tree_depth(t->next1, lvl, 1);
     if (t->next2)
-        printBinTreeDepth(t->next2, lvl, 2);
+        print_bin_tree_depth(t->next2, lvl, 2);
 }
 
-void freeBinTree(binTree* t)
+void free_bin_tree(bin_tree* t)
 {
     if (t->next1)
-        freeBinTree(t->next1);
+        free_bin_tree(t->next1);
     if (t->next2)
-        freeBinTree(t->next2);
+        free_bin_tree(t->next2);
     free(t);
 }
 
-binTree* findFirstEmpty(binTree* t)
+bin_tree* find_first_empty(bin_tree* t)
 {
     if (!t->val[0])
         return t;
 
-    binTree *res = t, *tmp = NULL;
+    bin_tree *res = t, *tmp = NULL;
 
-    while (res->val[0] && res->next1 && ! (tmp = findFirstLeftEmpty(res->next1)) && res->next2)
+    while (res->val[0] && res->next1 && ! (tmp = find_first_left_empty(res->next1)) && res->next2)
         res = res->next2;
 
     if (! res->val[0])
         return res;
 
-    binTree *new = malloc(sizeof(binTree));
-    initBinTree(new);
+    bin_tree *new = malloc(sizeof(bin_tree));
+    init_bin_tree(new);
 
     if (tmp){
         if (!tmp->val[0]) {
@@ -96,9 +96,9 @@ binTree* findFirstEmpty(binTree* t)
     return new;
 }
 
-binTree* findFirstLeftEmpty(binTree* t)
+bin_tree* find_first_left_empty(bin_tree* t)
 {
-    if (t && t->val[0] && !isLeafOp(t))
+    if (t && t->val[0] && !is_leaf_op(t))
         return NULL;
     else if (!t ||
             !(t->val[0]) ||
@@ -106,19 +106,19 @@ binTree* findFirstLeftEmpty(binTree* t)
             !(t->next2))
         return t;
 
-    while (t->next1 && isLeafOp(t->next1) &&
-            ((t->next1->next2 && isLeafOp(t->next1->next2)) || ! t->next1->next2 ))
+    while (t->next1 && is_leaf_op(t->next1) &&
+            ((t->next1->next2 && is_leaf_op(t->next1->next2)) || ! t->next1->next2 ))
         t = t->next1;
 
-    if (t->next2 && isLeafOp(t->next2))
-        return findFirstLeftEmpty(t->next2);
-    else if (isLeafOp(t) && (! t->next1 || ! t->next2))
+    if (t->next2 && is_leaf_op(t->next2))
+        return find_first_left_empty(t->next2);
+    else if (is_leaf_op(t) && (! t->next1 || ! t->next2))
         return t;
 
     return NULL;
 }
 
-int isOp(char str)
+int is_op(char str)
 {
     switch (str) {
         case '+':
@@ -139,8 +139,8 @@ int isOp(char str)
     return 0;
 }
 
-static int isLeafOp(binTree* t)
+static int is_leaf_op(bin_tree* t)
 {
-    int a = isOp(t->val[0]), b = (! t->val[1]);
+    int a = is_op(t->val[0]), b = (! t->val[1]);
     return a && b;
 }
