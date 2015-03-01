@@ -396,6 +396,7 @@ static int hook_scientific_notation(char* str, char* curr, int* pos_curr)
 static int check_syntax(char* str)
 {
     int parentheses = 0, unbalenced = 0;
+    char err[32] = "";
 
     for (;*str; str++) {
         switch (*str) {
@@ -405,6 +406,19 @@ static int check_syntax(char* str)
             case ')':
                 parentheses--;
                 break;
+            case 'e':
+            case 'E':
+                // TODO
+                break;
+            case ' ':
+            case '\t':
+                continue;
+            default:
+                if (!is_op(*str) && (*str < '0' || *str > '9') && *str != '.') {
+                    snprintf(err, 32, "Unrecognized character : '%c'", *str);
+                    builtin_error(err);
+                    return 1;
+                }
         }
 
         if (parentheses < 0)
