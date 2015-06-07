@@ -33,6 +33,7 @@ Scientific notation is a decimal number (possibly with a dot) followed by an 'E'
 You can look `test.sh` to see all operations and their combinaisons that are known to work.
   
 # Not yet supported
+  - Long input lines (dynamically allocated)
   - Syntax check
   - Error handling
   
