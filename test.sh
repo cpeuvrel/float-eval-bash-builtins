@@ -96,6 +96,13 @@ TESTS=(
     "5E1%3"         "2"
     )
 
+buffer_size=42
+nb_test=${#TESTS[@]}
+for (( i = 0; i < buffer_size ; i++ )); do
+    TESTS[nb_test]+="+1"
+done
+TESTS[nb_test+1]+="$buffer_size"
+
 for (( i = 0; i < ${#TESTS[@]}; i+=2 )); do
     res=$(float_eval "${TESTS[i]}")
     [[ "${TESTS[i+1]}" == "${res%.*}" || "${TESTS[i+1]}" == "${res}" ]] ||
