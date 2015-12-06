@@ -102,6 +102,11 @@ for (( i = 0; i < buffer_size ; i++ )); do
     TESTS[nb_test]+="+1"
 done
 TESTS[nb_test+1]+="$buffer_size"
+(( nb_test+=2 ))
+for (( i = 0; i < buffer_size ; i++ )); do
+    TESTS[nb_test]+="1"
+done
+TESTS[nb_test+1]+="${TESTS[nb_test]}"
 
 for (( i = 0; i < ${#TESTS[@]}; i+=2 )); do
     res=$(float_eval "${TESTS[i]}")
