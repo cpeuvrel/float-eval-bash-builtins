@@ -33,21 +33,26 @@ static size_t slot_len = SIZE_SLOT;
 
 int float_eval_builtin(WORD_LIST *list)
 {
-    char *res = NULL, output_format[17] = "%.3Rf";
+    char *res = NULL, output_format[17] = "%.3Rf", *end;
     int flags = 0, i = 0;
     double precision = 3;
+    SHELL_VAR *reply_init;
+    ARRAY *reply;
+    mpfr_t res_mpfr;
+
+    mpfr_init2(res_mpfr, PRECISION);
 
     if (!HAS_WORD(list)) {
         builtin_usage();
         return EX_USAGE;
     }
 
-    SHELL_VAR *reply_init = make_new_array_variable("REPLY");
+    reply_init = make_new_array_variable("REPLY");
     if (array_p(reply_init) == 0) {
         builtin_error("Failed to bind array: REPLY");
         return EXECUTION_FAILURE;
     }
-    ARRAY *reply = array_cell(reply_init);
+    reply = array_cell(reply_init);
 
     for (i = 0; HAS_WORD(list); list = list->next) {
         if (strncmp("-v", list->word->word, 3) == 0 ||
@@ -57,7 +62,7 @@ int float_eval_builtin(WORD_LIST *list)
         }
         else if (strncmp("-p", list->word->word, 3) == 0 ||
                 strncmp("--precision", list->word->word, 12) == 0) {
-            char* end = NULL;
+            end = NULL;
             precision = strtod(list->next->word->word, &end);
 
             if (!HAS_WORD(list->next->next) || end[0]) {
@@ -77,9 +82,6 @@ int float_eval_builtin(WORD_LIST *list)
 
         if (check_syntax(res))
             return EXECUTION_FAILURE;
-
-        mpfr_t res_mpfr;
-        mpfr_init2(res_mpfr, PRECISION);
 
         float_eval(&res_mpfr, res, flags);
 
@@ -116,6 +118,11 @@ void float_eval(mpfr_t *res, char* str, int flags)
 
 static void compute_ast(mpfr_t *res,bin_tree* ast)
 {
+    int exp;
+
+    mpfr_t n1, n2;
+    mpz_t i1, i2, res_int;
+
     //TODO: Check endptr to see if we miss sth
     if (!ast) {
         mpfr_set_zero(*res, 0);
@@ -125,11 +132,6 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
         mpfr_set_str(*res, ast->val, 0, MPFR_RNDN);
         return;
     }
-
-    int exp;
-
-    mpfr_t n1, n2;
-    mpz_t i1, i2, res_int;
 
     mpfr_init2(n1, PRECISION);
     mpfr_init2(n2, PRECISION);
@@ -269,9 +271,9 @@ static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, cha
 
     bin_tree *fst = ast;
 
-    int begin_parentheses = str[0] == '(' ? 1 : 0;
+    int begin_parentheses = (str[0] == '(' ? 1 : 0);
 
-    int begin_sub = str[0] == '-' ? 1 : 0;
+    int begin_sub = (str[0] == '-' ? 1 : 0);
 
     if (begin_sub) {
         if (start && str[1] == '(') {
