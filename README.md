@@ -23,6 +23,7 @@ You can use every common operations :
   - combinaisons `||` `&&`
   - Not `!`
   - Bitwise not `~`
+  - Exponentiation (pow) `**`
   - Set wanted precision (-p INTEGER)
   - Scientific notation `1.00E+003`
   - Long input lines (dynamically allocated)
