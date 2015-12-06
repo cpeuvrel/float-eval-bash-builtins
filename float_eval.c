@@ -29,9 +29,11 @@ static int is_op_current_prio(char* op, int prio);
 static int is_op_prio_above(char* op, int prio);
 static int check_syntax(char* str);
 
+static size_t slot_len = SIZE_SLOT;
+
 int float_eval_builtin(WORD_LIST *list)
 {
-    char res[SIZE_SLOT] = "", output_format[17] = "%.3Rf";
+    char *res = NULL, output_format[17] = "%.3Rf";
     int flags = 0, i = 0;
     double precision = 3;
 
@@ -69,7 +71,9 @@ int float_eval_builtin(WORD_LIST *list)
             continue;
         }
 
-        strncpy(res, list->word->word , SIZE_SLOT);
+        slot_len = strlen(list->word->word)+2;
+        res = calloc(slot_len, sizeof(char));
+        strncpy(res, list->word->word , slot_len);
 
         if (check_syntax(res))
             return EXECUTION_FAILURE;
@@ -79,7 +83,7 @@ int float_eval_builtin(WORD_LIST *list)
 
         float_eval(&res_mpfr, res, flags);
 
-        mpfr_snprintf(res, SIZE_SLOT,output_format, res_mpfr);
+        mpfr_snprintf(res, slot_len, output_format, res_mpfr);
 
         mpfr_clear(res_mpfr);
 
@@ -259,19 +263,23 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
-    char curr[SIZE_SLOT] = {0}, tmp[SIZE_SLOT] = {0};
+
+    char *curr = calloc(slot_len, sizeof(char));
+    char *tmp = calloc(slot_len, sizeof(char));
+
     bin_tree *fst = ast;
 
     int begin_parentheses = str[0] == '(' ? 1 : 0;
 
     int begin_sub = str[0] == '-' ? 1 : 0;
+
     if (begin_sub) {
         if (start && str[1] == '(') {
-            snprintf(tmp, SIZE_SLOT,"0%s", str);
+            snprintf(tmp, slot_len,"0%s", str);
             begin_parentheses = 0;
             begin_sub = 0;
-            strncpy(str, tmp , SIZE_SLOT);
-            str[SIZE_SLOT-1] = 0;
+            strncpy(str, tmp , slot_len);
+            str[slot_len-1] = 0;
         }
         else if (pass == SUM_LVL && (start || op[0] != 0))
             str++;
@@ -281,7 +289,7 @@ static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, cha
         fst = find_first_empty(ast);
 
         if (op[0] == 0 && !begin_parentheses) {
-            snprintf(fst->val, SIZE_SLOT,"%s", str);
+            snprintf(fst->val, slot_len,"%s", str);
             return 0;
         }
         offset = write_op(fst, op);
@@ -330,13 +338,13 @@ static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, cha
 
             t = find_node_to_swap_modulo(fst, NULL);
 
-            strncpy(fst_tmp->val, t->val, SIZE_SLOT);
+            strncpy(fst_tmp->val, t->val, slot_len);
             fst_tmp->next1 = t->next1;
             fst_tmp->next2 = t->next2;
 
             new_root->next1 = fst_tmp;
 
-            strncpy(t->val, new_root->val, SIZE_SLOT);
+            strncpy(t->val, new_root->val, slot_len);
             t->next1 = new_root->next1;
             t->next2 = new_root->next2;
 
@@ -345,7 +353,7 @@ static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, cha
 
         if (begin_sub && pass == SUM_LVL) {
             begin_sub = 0;
-            snprintf(tmp, SIZE_SLOT,"-%s", curr);
+            snprintf(tmp, slot_len,"-%s", curr);
             i = tokenify(tmp, ast, str, 0, 0, 0);
         }
         else if (begin_parentheses == 2 && *str == ')')
