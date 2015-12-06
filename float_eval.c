@@ -45,13 +45,13 @@ int float_eval_builtin(WORD_LIST *list)
     ARRAY *reply = array_cell(reply_init);
 
     for (i = 0; HAS_WORD(list); list = list->next) {
-        if (strncmp("-v", list->word->word, SIZE_SLOT) == 0 ||
-            strncmp("--verbose", list->word->word, SIZE_SLOT) == 0) {
+        if (strncmp("-v", list->word->word, 3) == 0 ||
+            strncmp("--verbose", list->word->word, 10) == 0) {
             flags |= FLOAT_OPT_VERBOSE;
             continue;
         }
-        else if (strncmp("-p", list->word->word, SIZE_SLOT) == 0 ||
-                strncmp("--precision", list->word->word, SIZE_SLOT) == 0) {
+        else if (strncmp("-p", list->word->word, 3) == 0 ||
+                strncmp("--precision", list->word->word, 12) == 0) {
             char* end = NULL;
             precision = strtod(list->next->word->word, &end);
 
