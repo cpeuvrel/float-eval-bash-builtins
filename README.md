@@ -1,5 +1,5 @@
 # float-eval-bash-builtins
-A bash builtins which evaluate a arithmetic expression (as a string) and return a double (+/- what bc does).
+A bash builtins which evaluate a arithmetic expression (as a string) and return a double (+/- what GNU bc does).
 
 # Build
 Just do a `make`
@@ -25,6 +25,8 @@ You can use every common operations :
   - Bitwise not `~`
   - Set wanted precision (-p INTEGER)
   - Scientific notation `1.00E+003`
+  - Long input lines (dynamically allocated)
+  - Numbers are coded on 256 bits using the MPFR library (<http://www.mpfr.org/>)
   
 Note that comparaisons and combinaisons results in a boolean : `1` == `true` and `0` == `false`
 
@@ -33,7 +35,6 @@ Scientific notation is a decimal number (possibly with a dot) followed by an 'E'
 You can look `test.sh` to see all operations and their combinaisons that are known to work.
   
 # Not yet supported
-  - Long input lines (dynamically allocated)
   - Syntax check
   - Error handling
   
