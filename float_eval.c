@@ -85,14 +85,13 @@ int float_eval_builtin(WORD_LIST *list)
         float_eval(&res_mpfr, res, flags);
 
         mpfr_snprintf(res, slot_len, output_format, res_mpfr);
-
-        mpfr_clear(res_mpfr);
-
         if(array_insert(reply, i, res) < 0)
             printf("Insert failed\n");
 
         i++;
     }
+
+    mpfr_clear(res_mpfr);
 
     return EXECUTION_SUCCESS;
 }
