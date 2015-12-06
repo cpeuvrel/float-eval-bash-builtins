@@ -74,6 +74,11 @@ int float_eval_builtin(WORD_LIST *list)
             list = list->next;
             continue;
         }
+        else if (strncmp("-h", list->word->word, 3) == 0 ||
+            strncmp("--help", list->word->word, 7) == 0) {
+            builtin_usage();
+            return EX_USAGE;
+        }
 
         slot_len = strlen(list->word->word)+2;
         res = calloc(slot_len, sizeof(char));
