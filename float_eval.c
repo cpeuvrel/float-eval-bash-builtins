@@ -29,6 +29,9 @@ static int is_op_current_prio(char* op, int prio);
 static int is_op_prio_above(char* op, int prio);
 static int check_syntax(char* str);
 
+/*
+ * Base for float_eval builtin
+ */
 int float_eval_builtin(WORD_LIST *list)
 {
     char *res = NULL, output_format[17] = "%.3Rf", *end;
@@ -41,11 +44,13 @@ int float_eval_builtin(WORD_LIST *list)
 
     mpfr_init2(res_mpfr, PRECISION);
 
+    // If there is no args, print usage and exit
     if (!HAS_WORD(list)) {
         builtin_usage();
         return EX_USAGE;
     }
 
+    // Init Bash variables
     reply_init = make_new_array_variable("REPLY");
     if (array_p(reply_init) == 0) {
         builtin_error("Failed to bind array: REPLY");
@@ -53,6 +58,7 @@ int float_eval_builtin(WORD_LIST *list)
     }
     reply = array_cell(reply_init);
 
+    // Parse args
     for (i = 0; HAS_WORD(list); list = list->next) {
         if (strncmp("-v", list->word->word, 3) == 0 ||
             strncmp("--verbose", list->word->word, 10) == 0) {
@@ -61,6 +67,7 @@ int float_eval_builtin(WORD_LIST *list)
         }
         else if (strncmp("-p", list->word->word, 3) == 0 ||
                 strncmp("--precision", list->word->word, 12) == 0) {
+            // sets the number of digits to keep after the comma (default: 3)
             end = NULL;
             precision = strtod(list->next->word->word, &end);
 
@@ -80,15 +87,20 @@ int float_eval_builtin(WORD_LIST *list)
             return EX_USAGE;
         }
 
+        // For each args that aren't an option, we try to parse it as a number
+
         slot_len = strlen(list->word->word)+2;
         res = calloc(slot_len, sizeof(char));
         strncpy(res, list->word->word , slot_len);
 
+        // If syntax is incorect, exit
         if (check_syntax(res))
             return EXECUTION_FAILURE;
 
+        // Do the magic here
         float_eval(&res_mpfr, res, flags);
 
+        // Append to Bash array
         mpfr_snprintf(res, slot_len, output_format, res_mpfr);
         if(array_insert(reply, i, res) < 0)
             printf("Insert failed\n");
@@ -96,19 +108,29 @@ int float_eval_builtin(WORD_LIST *list)
         i++;
     }
 
+    // Cleanup
     mpfr_clear(res_mpfr);
 
     return EXECUTION_SUCCESS;
 }
 
+/*
+ * Evaluate the string str to a number res
+ *
+ * Default flag is 0. Only other supported is FLOAT_OPT_VERBOSE to print the AST (Abstract Syntax Tree).
+ *
+ * input: str, flags
+ * output: res
+ */
 void float_eval(mpfr_t *res, char* str, int flags)
 {
     bin_tree *ast = malloc(sizeof(bin_tree));
-
     init_bin_tree(ast);
 
+    // Fill the AST
     tokenify(str, ast, "", 0, 1, 0);
 
+    // Compute the AST and put final result in res
     compute_ast(res, ast);
 
     if (flags & FLOAT_OPT_VERBOSE) {
@@ -116,9 +138,18 @@ void float_eval(mpfr_t *res, char* str, int flags)
         print_bin_tree(ast);
     }
 
+    // Cleanup
     free_bin_tree(ast);
 }
 
+/*
+ * Compute the AST to have the resulting number
+ *
+ * Use recursive algorithm.
+ *
+ * input: ast
+ * output: res
+ */
 static void compute_ast(mpfr_t *res,bin_tree* ast)
 {
     int exp;
@@ -128,10 +159,12 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
 
     //TODO: Check endptr to see if we miss sth
     if (!ast) {
+        // Empty ast means 0
         mpfr_set_zero(*res, 0);
         return;
     }
     else if (! is_op(ast->val[0]) || (ast->val[0] == '-' && ast->val[1])) {
+        // If current node is a leaf, return its value
         mpfr_set_str(*res, ast->val, 0, MPFR_RNDN);
         return;
     }
@@ -139,6 +172,7 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
     mpfr_init2(n1, PRECISION);
     mpfr_init2(n2, PRECISION);
 
+    // We compute the next left and right nodes
     compute_ast(&n1, ast->next1);
     compute_ast(&n2, ast->next2);
 
@@ -152,6 +186,11 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
     mpz_set_si(i1, mpfr_get_si(n1, MPFR_RNDN));
     mpz_set_si(i2, mpfr_get_si(n2, MPFR_RNDN));
 
+    /* Do the right operation according to the operator
+     * Some operators exist in logical and bitwise forms, For example :
+     *  * & is bitwise AND. Result can be anything
+     *  * && is logical AND. Result is either 1 or 0
+     */
     switch (ast->val[0]) {
         case '+':
             mpfr_add(*res, n1, n2, MPFR_RNDN);
@@ -173,6 +212,7 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             mpfr_set_z(*res, res_int, MPFR_RNDN);
 
             if (ast->val[1] == '&') {
+                // operator is && (logical AND)
                 if ((mpfr_cmp_si(*res, 0)) == 0)
                     mpfr_set_zero(*res, 0);
                 else
@@ -188,6 +228,7 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             mpfr_set_z(*res, res_int, MPFR_RNDN);
 
             if (ast->val[1] == '|') {
+                // operator is || (logical OR)
                 if ((mpfr_cmp_si(*res, 0)) == 0)
                     mpfr_set_zero(*res, 0);
                 else
@@ -196,17 +237,20 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             break;
         case '<':
             if (ast->val[1] == '=') {
+                // operator is <=
                 if (mpfr_lessequal_p(n1, n2))
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
                     mpfr_set_zero(*res, 0);
             }
             else if (ast->val[1] == '<') {
+                // operator is << (bitwise left shift)
                 exp = (int)mpfr_get_si(n2, MPFR_RNDN);
                 mpfr_set_ui_2exp(n2, 1, exp, MPFR_RNDN);
                 mpfr_mul(*res, n1, n2, MPFR_RNDN);
             }
             else {
+                // operator is <
                 if (mpfr_less_p(n1, n2))
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
@@ -215,17 +259,20 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             break;
         case '>':
             if (ast->val[1] == '=') {
+                // operator is >=
                 if (mpfr_greaterequal_p(n1, n2))
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
                     mpfr_set_zero(*res, 0);
             }
             else if (ast->val[1] == '>') {
+                // operator is >> (bitwise right shift)
                 exp = (int)mpfr_get_ld(n2, MPFR_RNDN);
                 mpfr_set_ui_2exp(n2, 1, exp, MPFR_RNDN);
                 mpfr_div(*res, n1, n2, MPFR_RNDN);
             }
             else {
+                // operator is >
                 if (mpfr_greater_p(n1, n2))
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
@@ -240,12 +287,14 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             break;
         case '!':
             if (ast->val[1] == '=') {
+                // operator is !=
                 if (mpfr_lessgreater_p(n1, n2))
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
                     mpfr_set_zero(*res, 0);
             }
             else {
+                // operator is ! (logical NOT)
                 if ((mpfr_cmp_si(n2, 0)) == 0)
                     mpfr_set_ui(*res, 1, MPFR_RNDN);
                 else
@@ -258,6 +307,7 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             break;
     }
 
+    // Cleanup
     mpfr_clear(n1);
     mpfr_clear(n2);
     mpz_clear(i1);
@@ -265,6 +315,14 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
     mpz_clear(res_int);
 }
 
+/*
+ * Fill the AST with the content of the string
+ *
+ * Use recursive algorithm.
+ *
+ * input: str
+ * output: ast
+ */
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
@@ -465,6 +523,7 @@ static int write_op(bin_tree* t, char* str)
     };
     char op_un[32] = "!~" ;
 
+    // Look for binary operators with 2 chars
     for (i = 0; op2[i][0] ; i++) {
         if (strncmp(op2[i], str , 2) == 0){
             strncpy(t->val, op2[i] , 2);
@@ -473,6 +532,7 @@ static int write_op(bin_tree* t, char* str)
         }
     }
 
+    // Look for unary operators
     for (i = 0; op_un[i] ; i++) {
          if (*str == op_un[i]) {
              bin_tree *empty = malloc(sizeof(bin_tree));
