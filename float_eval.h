@@ -40,7 +40,7 @@
 
 #include "bin_tree.h"
 
-double float_eval(char* str, int flags);
+void float_eval(mpfr_t *res, char* str, int flags);
 int float_eval_builtin(WORD_LIST *list);
 
 /*  builtin short documentation */

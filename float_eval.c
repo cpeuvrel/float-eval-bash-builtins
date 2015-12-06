@@ -31,7 +31,7 @@ static int check_syntax(char* str);
 
 int float_eval_builtin(WORD_LIST *list)
 {
-    char res[SIZE_SLOT] = "", output_format[17] = "%.3f";
+    char res[SIZE_SLOT] = "", output_format[17] = "%.3Rf";
     int flags = 0, i = 0;
     double precision = 3;
 
@@ -63,7 +63,7 @@ int float_eval_builtin(WORD_LIST *list)
                 return EXECUTION_FAILURE;
             }
 
-            snprintf(output_format, 16, "%%.%df", (int) precision);
+            snprintf(output_format, 16, "%%.%dRf", (int) precision);
 
             list = list->next;
             continue;
@@ -74,7 +74,14 @@ int float_eval_builtin(WORD_LIST *list)
         if (check_syntax(res))
             return EXECUTION_FAILURE;
 
-        snprintf(res, SIZE_SLOT,output_format, float_eval(res, flags));
+        mpfr_t res_mpfr;
+        mpfr_init2(res_mpfr, PRECISION);
+
+        float_eval(&res_mpfr, res, flags);
+
+        mpfr_snprintf(res, SIZE_SLOT,output_format, res_mpfr);
+
+        mpfr_clear(res_mpfr);
 
         if(array_insert(reply, i, res) < 0)
             printf("Insert failed\n");
@@ -85,23 +92,22 @@ int float_eval_builtin(WORD_LIST *list)
     return EXECUTION_SUCCESS;
 }
 
-double float_eval(char* str, int flags)
+void float_eval(mpfr_t *res, char* str, int flags)
 {
-    double res = 0;
     bin_tree *ast = malloc(sizeof(bin_tree));
+
     init_bin_tree(ast);
 
     tokenify(str, ast, "", 0, 1, 0);
 
-    res = compute_ast(ast);
+    compute_ast(res, ast);
+
     if (flags & FLOAT_OPT_VERBOSE) {
         printf("==> %s\n", str);
         print_bin_tree(ast);
     }
 
     free_bin_tree(ast);
-
-    return res;
 }
 
 static void compute_ast(mpfr_t *res,bin_tree* ast)
