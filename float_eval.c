@@ -16,7 +16,10 @@
  */
 
 #include "float_eval.h"
-static double compute_ast(bin_tree* ast);
+
+#define PRECISION 256
+
+static void compute_ast(mpfr_t *res, bin_tree* ast);
 static bin_tree* find_node_to_swap_modulo(bin_tree* t, bin_tree* save);
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op);
 static int write_op(bin_tree* t, char* str);
@@ -101,57 +104,150 @@ double float_eval(char* str, int flags)
     return res;
 }
 
-static double compute_ast(bin_tree* ast)
+static void compute_ast(mpfr_t *res,bin_tree* ast)
 {
     //TODO: Check endptr to see if we miss sth
-    if (!ast)
-        return 0;
-    else if (! is_op(ast->val[0]) || (ast->val[0] == '-' && ast->val[1]))
-        return strtod(ast->val, NULL);
+    if (!ast) {
+        mpfr_set_zero(*res, 0);
+        return;
+    }
+    else if (! is_op(ast->val[0]) || (ast->val[0] == '-' && ast->val[1])) {
+        mpfr_set_str(*res, ast->val, 0, MPFR_RNDN);
+        return;
+    }
+
+    int exp;
+
+    mpfr_t n1, n2;
+    mpz_t i1, i2, res_int;
+
+    mpfr_init2(n1, PRECISION);
+    mpfr_init2(n2, PRECISION);
+
+    compute_ast(&n1, ast->next1);
+    compute_ast(&n2, ast->next2);
+
+    // FIXME: We used the simple way of always initializing Integers and floats
+    //        variables, we should at least initialize integers only when needed
+
+    mpz_init2(i1, PRECISION);
+    mpz_init2(i2, PRECISION);
+    mpz_init2(res_int, PRECISION);
+
+    mpz_set_si(i1, mpfr_get_si(n1, MPFR_RNDN));
+    mpz_set_si(i2, mpfr_get_si(n2, MPFR_RNDN));
 
     switch (ast->val[0]) {
         case '+':
-            return compute_ast(ast->next1) + compute_ast(ast->next2);
+            mpfr_add(*res, n1, n2, MPFR_RNDN);
+            break;
         case '-':
-            return compute_ast(ast->next1) - compute_ast(ast->next2);
+            mpfr_sub(*res, n1, n2, MPFR_RNDN);
+            break;
         case '*':
-            return compute_ast(ast->next1) * compute_ast(ast->next2);
+            mpfr_mul(*res, n1, n2, MPFR_RNDN);
+            break;
         case '/':
-            return compute_ast(ast->next1) / compute_ast(ast->next2);
+            mpfr_div(*res, n1, n2, MPFR_RNDN);
+            break;
         case '%':
-            return (int)compute_ast(ast->next1) % (int)compute_ast(ast->next2);
+            mpfr_fmod(*res, n1, n2, MPFR_RNDN);
+            break;
         case '&':
-            if (ast->val[1] == '&')
-                return (int)compute_ast(ast->next1) && (int)compute_ast(ast->next2);
-            return (int)compute_ast(ast->next1) & (int)compute_ast(ast->next2);
+            mpz_and(res_int, i1, i2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+
+            if (ast->val[1] == '&') {
+                if ((mpfr_cmp_si(*res, 0)) == 0)
+                    mpfr_set_zero(*res, 0);
+                else
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+            }
+            break;
         case '^':
-            return (int)compute_ast(ast->next1) ^ (int)compute_ast(ast->next2);
+            mpz_xor(res_int, i1, i2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+            break;
         case '|':
-            if (ast->val[1] == '|')
-                return (int)compute_ast(ast->next1) || (int)compute_ast(ast->next2);
-            return (int)compute_ast(ast->next1) | (int)compute_ast(ast->next2);
+            mpz_ior(res_int, i1, i2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+
+            if (ast->val[1] == '|') {
+                if ((mpfr_cmp_si(*res, 0)) == 0)
+                    mpfr_set_zero(*res, 0);
+                else
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+            }
+            break;
         case '<':
-            if (ast->val[1] == '=')
-                return (int)compute_ast(ast->next1) <= (int)compute_ast(ast->next2);
-            if (ast->val[1] == '<')
-                return (int)compute_ast(ast->next1) << (int)compute_ast(ast->next2);
-            return (int)compute_ast(ast->next1) < (int)compute_ast(ast->next2);
+            if (ast->val[1] == '=') {
+                if (mpfr_lessequal_p(n1, n2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            else if (ast->val[1] == '<') {
+                exp = (int)mpfr_get_si(n2, MPFR_RNDN);
+                mpfr_set_ui_2exp(n2, 1, exp, MPFR_RNDN);
+                mpfr_mul(*res, n1, n2, MPFR_RNDN);
+            }
+            else {
+                if (mpfr_less_p(n1, n2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            break;
         case '>':
-            if (ast->val[1] == '=')
-                return (int)compute_ast(ast->next1) >= (int)compute_ast(ast->next2);
-            else if (ast->val[1] == '>')
-                return (int)compute_ast(ast->next1) >> (int)compute_ast(ast->next2);
-            return (int)compute_ast(ast->next1) > (int)compute_ast(ast->next2);
+            if (ast->val[1] == '=') {
+                if (mpfr_greaterequal_p(n1, n2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            else if (ast->val[1] == '>') {
+                exp = (int)mpfr_get_ld(n2, MPFR_RNDN);
+                mpfr_set_ui_2exp(n2, 1, exp, MPFR_RNDN);
+                mpfr_div(*res, n1, n2, MPFR_RNDN);
+            }
+            else {
+                if (mpfr_greater_p(n1, n2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            break;
         case '=':
-            return (int)compute_ast(ast->next1) == (int)compute_ast(ast->next2);
+            if (mpfr_equal_p(n1, n2))
+                mpfr_set_ui(*res, 1, MPFR_RNDN);
+            else
+                mpfr_set_zero(*res, 0);
+            break;
         case '!':
-            if (ast->val[1] == '=')
-                return (int)compute_ast(ast->next1) != (int)compute_ast(ast->next2);
-            return ! (int)compute_ast(ast->next2);
+            if (ast->val[1] == '=') {
+                if (mpfr_lessgreater_p(n1, n2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            else {
+                if ((mpfr_cmp_si(n2, 0)) == 0)
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            break;
         case '~':
-            return ~ (int)compute_ast(ast->next2);
+            mpz_com(res_int, i1);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+            break;
     }
-    return 0;
+
+    mpfr_clear(n1);
+    mpfr_clear(n2);
+    mpz_clear(i1);
+    mpz_clear(i2);
+    mpz_clear(res_int);
 }
 
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)

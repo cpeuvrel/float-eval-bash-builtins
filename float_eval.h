@@ -32,6 +32,9 @@
 #include "shell.h"
 #include "common.h"
 
+#include <gmp.h>
+#include <mpfr.h>
+
 #define HAS_WORD(wordlist) \
         ((wordlist) && (wordlist)->word && (wordlist)->word->word)
 
