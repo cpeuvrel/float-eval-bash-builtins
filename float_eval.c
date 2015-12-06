@@ -199,7 +199,12 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
             mpfr_sub(*res, n1, n2, MPFR_RNDN);
             break;
         case '*':
-            mpfr_mul(*res, n1, n2, MPFR_RNDN);
+            if (ast->val[1] == '*') {
+                mpfr_pow(*res, n1, n2, MPFR_RNDN);
+            }
+            else {
+                mpfr_mul(*res, n1, n2, MPFR_RNDN);
+            }
             break;
         case '/':
             mpfr_div(*res, n1, n2, MPFR_RNDN);
@@ -469,7 +474,7 @@ static int is_op_current_prio(char* op, int prio)
         {"<=", ">=", "<", ">"},
         {"<<", ">>"},
         {"+", "-"},
-        {"*", "/", "%"},
+        {"**", "*", "/", "%"},
         {"!", "~"},
         {""}
     };
@@ -519,6 +524,7 @@ static int write_op(bin_tree* t, char* str)
         "!=",
         "<<",
         ">>",
+        "**",
         ""
     };
     char op_un[32] = "!~" ;
