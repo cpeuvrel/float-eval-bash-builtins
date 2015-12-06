@@ -28,6 +28,7 @@ static int write_op(bin_tree* t, char* str);
 static int is_op_current_prio(char* op, int prio);
 static int is_op_prio_above(char* op, int prio);
 static int check_syntax(char* str);
+static int check_valid_ast(bin_tree* ast);
 
 /*
  * Base for float_eval builtin
@@ -130,8 +131,14 @@ void float_eval(mpfr_t *res, char* str, int flags)
     // Fill the AST
     tokenify(str, ast, "", 0, 1, 0);
 
-    // Compute the AST and put final result in res
-    compute_ast(res, ast);
+    // If final AST is correct
+    if (! check_valid_ast(ast)) {
+        mpfr_set_nan(*res);
+    }
+    else {
+        // Compute the AST and put final result in res
+        compute_ast(res, ast);
+    }
 
     if (flags & FLOAT_OPT_VERBOSE) {
         printf("==> %s\n", str);
@@ -614,4 +621,25 @@ static int check_syntax(char* str)
     }
 
     return 0;
+}
+
+/*
+ * Check validity of AST
+ *
+ * If a node has a left node and no right node (or vice versa), it's not normal
+ */
+static int check_valid_ast(bin_tree* ast)
+{
+    // If one of children nodes is in error, return an error
+    if (ast->next1 && ast->next2 &&
+        (!check_valid_ast(ast->next1) ||
+         !check_valid_ast(ast->next2)))
+        return 0;
+
+    // Error if there is only a left or right node
+    if ((ast->next1 && !ast->next2) ||
+        (!ast->next1 && ast->next2))
+        return 0;
+
+    return 1;
 }
