@@ -29,12 +29,11 @@ static int is_op_current_prio(char* op, int prio);
 static int is_op_prio_above(char* op, int prio);
 static int check_syntax(char* str);
 
-static size_t slot_len = SIZE_SLOT;
-
 int float_eval_builtin(WORD_LIST *list)
 {
     char *res = NULL, output_format[17] = "%.3Rf", *end;
     int flags = 0, i = 0;
+    size_t slot_len;
     double precision = 3;
     SHELL_VAR *reply_init;
     ARRAY *reply;
@@ -265,6 +264,8 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
+
+    size_t slot_len = strlen(str)+2;
 
     char *curr = calloc(slot_len, sizeof(char));
     char *tmp = calloc(slot_len, sizeof(char));
