@@ -19,6 +19,7 @@
 
 #define PRECISION 256
 
+static int call_bc(mpfr_t *res, char* str);
 static void compute_ast(mpfr_t *res, bin_tree* ast);
 static bin_tree* find_node_to_swap_modulo(bin_tree* t, bin_tree* save);
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op);
@@ -64,6 +65,11 @@ int float_eval_builtin(WORD_LIST *list)
         if (strncmp("-v", list->word->word, 3) == 0 ||
             strncmp("--verbose", list->word->word, 10) == 0) {
             flags |= FLOAT_OPT_VERBOSE;
+            continue;
+        }
+        else if (strncmp("-b", list->word->word, 3) == 0 ||
+            strncmp("--bc", list->word->word, 5) == 0) {
+            flags |= FLOAT_OPT_BC;
             continue;
         }
         else if (strncmp("-p", list->word->word, 3) == 0 ||
@@ -118,7 +124,10 @@ int float_eval_builtin(WORD_LIST *list)
 /*
  * Evaluate the string str to a number res
  *
- * Default flag is 0. Only other supported is FLOAT_OPT_VERBOSE to print the AST (Abstract Syntax Tree).
+ * Default flag is 0.
+ * Supported flags:
+ *  * FLOAT_OPT_VERBOSE: Print the AST (Abstract Syntax Tree)
+ *  * FLOAT_OPT_BC: Fallback to GNU bc if there was an error
  *
  * input: str, flags
  * output: res
@@ -133,7 +142,13 @@ void float_eval(mpfr_t *res, char* str, int flags)
 
     // If final AST is correct
     if (! check_valid_ast(ast)) {
-        mpfr_set_nan(*res);
+        if (flags & FLOAT_OPT_BC) {
+            if (!call_bc(res, str))
+                mpfr_set_nan(*res);
+        }
+        else {
+            mpfr_set_nan(*res);
+        }
     }
     else {
         // Compute the AST and put final result in res
@@ -147,6 +162,87 @@ void float_eval(mpfr_t *res, char* str, int flags)
 
     // Cleanup
     free_bin_tree(ast);
+}
+
+/*
+ * Call bc with str and put result in res
+ *
+ * input: str
+ * outpu: res
+ */
+static int call_bc(mpfr_t *res, char* str)
+{
+    int ret=1, str_len, count;
+    char *buffer;
+
+    int in[2];
+    int out[2];
+
+    /*fprintf(stderr, "Fallback to bc\n");*/
+
+    // Open two pipes for later use to communicate with bc
+    if (pipe(in) == -1) {
+        return 0;
+    }
+    if (pipe(out) == -1) {
+        close (in[0]);
+        close (in[1]);
+        return 0;
+    }
+
+    if (fork() > 0) { /* parent */
+        // Close fd not needed by parent
+        close(in[0]); 
+        close(out[1]); 
+    }
+    else {
+        // Close fd not needed by child
+        close(in[1]);
+        close(out[0]);
+
+        // Get stdin from pipe
+        close(0);
+        dup(in[0]);
+
+        // Get stdout from pipe
+        close(1);
+        dup(out[1]);
+
+        execl("/usr/bin/bc", "/usr/bin/bc", "-l", "-q", 0);
+        _exit(1);
+    }
+
+    str_len = strlen(str);
+
+    // Init buffer to the input string + a \n at the end
+    buffer = malloc((str_len + 2) * sizeof(char));
+    snprintf(buffer, str_len + 2, "%s\n", str);
+
+    // Write expression to stdin of bc and reset buffer
+    if (write(in[1], buffer, str_len+1) < 0) {
+        ret = 0;
+        goto bc_cleanup;
+    }
+
+    bzero(buffer, str_len+2);
+
+    // Get reply from bc
+    count = read(out[0], buffer, str_len);
+    if (count < 0) {
+        ret = 0;
+        goto bc_cleanup;
+    }
+
+    // Remove final \n written by bc and put result in res
+    buffer[count-1] = 0;
+    mpfr_set_str(*res, buffer, 0, MPFR_RNDN);
+
+    // Cleanup
+bc_cleanup:
+    close(in[1]);
+    close(out[0]);
+    free (buffer);
+    return ret;
 }
 
 /*
@@ -637,8 +733,8 @@ static int check_valid_ast(bin_tree* ast)
         return 0;
 
     // Error if there is only a left or right node
-    if ((ast->next1 && !ast->next2) ||
-        (!ast->next1 && ast->next2))
+    if ((ast->next1 && (!ast->next2 || (ast->next2 && !ast->next2->val[0]))) ||
+        (ast->next2 && (!ast->next1 || (ast->next1 && !ast->next1->val[0]))))
         return 0;
 
     return 1;

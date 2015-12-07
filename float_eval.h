@@ -19,6 +19,7 @@
 #define FLOAT_EVAL_H
 
 #define FLOAT_OPT_VERBOSE 1
+#define FLOAT_OPT_BC 2
 #define SUM_LVL 8
 #define MULT_LVL 9
 
