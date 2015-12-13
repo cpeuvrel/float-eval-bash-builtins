@@ -430,11 +430,18 @@ static void compute_ast(mpfr_t *res,bin_tree* ast)
  *
  * input: str
  * output: ast
+ *
+ * Others params :
+ *  * op : (start at "")
+ *  * pass : We do N pass on the string for N operator priority levels (start at 0)
+ *  * start : Do we start a new token (start at 1)
+ *  * prev_op : (start at 0)
  */
 static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, char prev_op)
 {
     int pos_curr = 0, parentheses = 0, found_next_op = 0, i = 0, offset = 0;
 
+    // Size of string + final \0 + potentially a leading 0 (for transforming -x in 0-x)
     size_t slot_len = strlen(str)+2;
 
     char *curr = calloc(slot_len, sizeof(char));
@@ -442,8 +449,10 @@ static int tokenify(char *str, bin_tree* ast, char* op, int pass, int start, cha
 
     bin_tree *fst = ast;
 
+    // First char is an opening parentheses
     int begin_parentheses = (str[0] == '(' ? 1 : 0);
 
+    // First char is a minus sign '-'
     int begin_sub = (str[0] == '-' ? 1 : 0);
 
     if (begin_sub) {
