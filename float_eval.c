@@ -29,6 +29,7 @@ static void* pop(stack_t* s);
 static char* tokenify(char** str, int* type, int* parenthesis);
 
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
+static void calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
 static int cmp_op(char* op1, char* op2);
 
 int main(int argc, const char *argv[])
@@ -324,6 +325,38 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
     }
 
     push(op, stack_o);
+}
+
+/*
+ * Compute the result for the binary operator on the values
+ */
+static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
+{
+    int offset = 0, exp;
+
+    while (op[offset] == '(')
+        offset++;
+
+    /* 
+     * Do the right operation according to the operator
+     */
+    switch (op[offset]) {
+        case '+':
+            mpfr_add(*res, val1, val2, MPFR_RNDN);
+            break;
+        case '-':
+            mpfr_sub(*res, val1, val2, MPFR_RNDN);
+            break;
+        case '*':
+            mpfr_mul(*res, val1, val2, MPFR_RNDN);
+            break;
+        case '/':
+            mpfr_div(*res, val1, val2, MPFR_RNDN);
+            break;
+        case '%':
+            mpfr_fmod(*res, val1, val2, MPFR_RNDN);
+            break;
+    }
 }
 
 /*
