@@ -333,12 +333,25 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
 static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
 {
     int offset = 0, exp;
+    mpfr_t pow;
+
+    mpz_t int1, int2, res_int;
+
+    mpz_init2(int1, PRECISION);
+    mpz_init2(int2, PRECISION);
+    mpz_init2(res_int, PRECISION);
+
+    mpz_set_si(int1, mpfr_get_si(val1, MPFR_RNDN));
+    mpz_set_si(int2, mpfr_get_si(val2, MPFR_RNDN));
 
     while (op[offset] == '(')
         offset++;
 
     /* 
      * Do the right operation according to the operator
+     * Some operators exist in logical and bitwise forms, For example :
+     *  * & is bitwise AND. Result can be anything
+     *  * && is logical AND. Result is either 1 or 0
      */
     switch (op[offset]) {
         case '+':
@@ -348,7 +361,12 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
             mpfr_sub(*res, val1, val2, MPFR_RNDN);
             break;
         case '*':
-            mpfr_mul(*res, val1, val2, MPFR_RNDN);
+            if (op[offset+1] == '*') {
+                mpfr_pow(*res, val1, val2, MPFR_RNDN);
+            }
+            else {
+                mpfr_mul(*res, val1, val2, MPFR_RNDN);
+            }
             break;
         case '/':
             mpfr_div(*res, val1, val2, MPFR_RNDN);
@@ -356,7 +374,96 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
         case '%':
             mpfr_fmod(*res, val1, val2, MPFR_RNDN);
             break;
+        case '&':
+            mpz_and(res_int, int1, int2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+
+            if (op[offset+1] == '&') {
+                // operator is && (logical AND)
+                if ((mpfr_cmp_si(*res, 0)) == 0)
+                    mpfr_set_zero(*res, 0);
+                else
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+            }
+            break;
+        case '^':
+            mpz_xor(res_int, int1, int2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+            break;
+        case '|':
+            mpz_ior(res_int, int1, int2);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+
+            if (op[offset+1] == '|') {
+                // operator is || (logical OR)
+                if ((mpfr_cmp_si(*res, 0)) == 0)
+                    mpfr_set_zero(*res, 0);
+                else
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+            }
+            break;
+        case '<':
+            if (op[offset+1] == '=') {
+                // operator is <=
+                if (mpfr_lessequal_p(val1, val2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            else if (op[offset+1] == '<') {
+                // operator is << (bitwise left shift)
+                exp = (int)mpfr_get_si(val2, MPFR_RNDN);
+                mpfr_set_ui_2exp(val2, 1, exp, MPFR_RNDN);
+                mpfr_mul(*res, val1, val2, MPFR_RNDN);
+            }
+            else {
+                // operator is <
+                if (mpfr_less_p(val1, val2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            break;
+        case '>':
+            if (op[offset+1] == '=') {
+                // operator is >=
+                if (mpfr_greaterequal_p(val1, val2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            else if (op[offset+1] == '>') {
+                // operator is >> (bitwise right shift)
+                exp = (int)mpfr_get_ld(val2, MPFR_RNDN);
+                mpfr_set_ui_2exp(val2, 1, exp, MPFR_RNDN);
+                mpfr_div(*res, val1, val2, MPFR_RNDN);
+            }
+            else {
+                // operator is >
+                if (mpfr_greater_p(val1, val2))
+                    mpfr_set_ui(*res, 1, MPFR_RNDN);
+                else
+                    mpfr_set_zero(*res, 0);
+            }
+            break;
+        case '=':
+            if (mpfr_equal_p(val1, val2))
+                mpfr_set_ui(*res, 1, MPFR_RNDN);
+            else
+                mpfr_set_zero(*res, 0);
+            break;
+        case '!':
+            // operator is !=
+            if (mpfr_lessgreater_p(val1, val2))
+                mpfr_set_ui(*res, 1, MPFR_RNDN);
+            else
+                mpfr_set_zero(*res, 0);
+            break;
     }
+
+    mpz_clear(res_int);
+    mpz_clear(int1);
+    mpz_clear(int2);
 }
 
 /*
