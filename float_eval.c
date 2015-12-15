@@ -198,9 +198,21 @@ static char* tokenify(char** str, int* type, int* parenthesis)
     char *beg;
     char *res;
     char op;
-    int i, res_len;
+    int i, j, offset_parent, res_len;
 
     *type = FLOAT_EVAL_NULL;
+
+    while (**str == '(' || **str == ')') {
+        switch (**str) {
+            case '(':
+                (*parenthesis)++;
+                break;
+            case ')':
+                (*parenthesis)--;
+                break;
+        }
+        (*str)++;
+    }
 
     beg = *str;
 
@@ -227,16 +239,26 @@ static char* tokenify(char** str, int* type, int* parenthesis)
     }
 
     // lenght of result is lenght of the part of the string we want + 1 for final \0
-    res_len = *str - beg + 1;
+    // + if it's an operator, the depth of parentheses (to remember the priority)
+    offset_parent = (*type == FLOAT_EVAL_OP ? *parenthesis : 0);
+    res_len = *str - beg + 1 + offset_parent;
 
     res = malloc(res_len * sizeof(char));
 
     i=0;
-    while (i < res_len - 1) {
-        res[i] = *(beg + aptr);
-        i++;
+    for (i = 0; i < offset_parent; i++) {
+        res[i] = '(';
     }
-    res[i] = '\0';
+
+    j = i;
+
+    while (i < res_len - 1) {
+        int aptr = i - offset_parent;
+        res[j] = *(beg + aptr);
+        i++;
+        j++;
+    }
+    res[j] = '\0';
 
     return res;
 }
