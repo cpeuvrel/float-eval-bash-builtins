@@ -27,6 +27,7 @@ static void push(void* val, stack_t* s);
 static void* pop(stack_t* s);
 
 static char* tokenify(char** str, int* type, int* parenthesis);
+static void end_calculus(stack_t* stack_o, stack_t* stack_v);
 
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static void calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
@@ -81,6 +82,8 @@ void float_eval(mpfr_t *res, char* str)
             compute_op(val, &stack_o, &stack_v);
         }
     }
+
+    end_calculus(&stack_o, &stack_v);
 
     ptr = pop(&stack_v);
     mpfr_set(*res, *ptr, MPFR_RNDN);
@@ -289,6 +292,39 @@ static char* tokenify(char** str, int* type, int* parenthesis)
     res[j] = '\0';
 
     return res;
+}
+
+/*
+ * Finish the stacks to have the final value
+ */
+static void end_calculus(stack_t* stack_o, stack_t* stack_v)
+{
+    char *op;
+    mpfr_t *res;
+    mpfr_t *val1, *val2;
+
+    if (stack_o->pos == 0)
+        return;
+
+    while (stack_o->pos > 0) {
+        res = malloc(sizeof(mpfr_t));
+        mpfr_init2(*res, PRECISION);
+
+        op = pop(stack_o);
+
+        val1 = pop(stack_v);
+
+        val2 = pop(stack_v);
+        calulus(res, *val2, *val1, op);
+        mpfr_clear(*val2);
+        free(val2);
+
+        mpfr_clear(*val1);
+        free(val1);
+        free(op);
+
+        push(res, stack_v);
+    }
 }
 
 /*
