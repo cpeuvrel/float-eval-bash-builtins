@@ -26,6 +26,8 @@ static void clear_mpfr(stack_t s);
 static void push(void* val, stack_t* s);
 static void* pop(stack_t* s);
 
+static int cmp_op(char* op1, char* op2);
+
 int main(int argc, const char *argv[])
 {
     if (argc < 2) {
@@ -173,4 +175,47 @@ static void* pop(stack_t* s)
     s->stack[s->pos] = NULL;
 
     return res;
+}
+
+/*
+ * Compare 2 operators
+ *
+ * The first chars can be '(' to indicate the level of parentheses
+ *
+ * Return:
+ *  * 0: same priority
+ *  * <0: op1 priority > op2
+ *  * >0: op1 priority < op2
+ */
+static int cmp_op(char* op1_prio, char* op2_prio)
+{
+    int i, j, offset1 = 0, offset2 = 0, prio1 = -1, prio2 = -1;
+    char *op1 = op1_prio, *op2 = op2_prio;
+
+    while (*op1 == '(') {
+        offset1++;
+        op1++;
+    }
+    while (*op2 == '(') {
+        offset2++;
+        op2++;
+    }
+
+    for (i = 0; i < FLOAT_EVAL_MAX_PRIO; i++) {
+        for (j = 0; op_prio[i][j]; j++) {
+            if (prio1 == -1 && strncmp(op1, op_prio[i][j], FLOAT_EVAL_MAX_PRIO_LEN) == 0)
+                prio1 = i;
+
+            if (prio2 == -1 && strncmp(op2, op_prio[i][j], FLOAT_EVAL_MAX_PRIO_LEN) == 0)
+                prio2 = i;
+        }
+
+        if (prio1 != -1 && prio2 != -1)
+            break;
+    }
+
+    prio1 += offset1 * FLOAT_EVAL_MAX_PRIO;
+    prio2 += offset2 * FLOAT_EVAL_MAX_PRIO;
+
+    return (prio2 - prio1);
 }
