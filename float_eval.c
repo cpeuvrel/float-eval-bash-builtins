@@ -48,6 +48,9 @@ int main(int argc, const char *argv[])
     float_eval(&val, str);
     free(str);
 
+    mpfr_out_str(stderr, 10, 3, val, MPFR_RNDN);
+    putc('\n', stderr);
+
     // Cleanup
     mpfr_clear(val);
 
