@@ -6,14 +6,15 @@ BASH_CFLAGS=-DHAVE_CONFIG_H -DSHELL -O2 -fwrapv -D_GNU_SOURCE -DRECYCLES_PIDS  -
 
 SPEC_CFLAGS = -fPIC -I. $(BASH_CFLAGS)
 
-all : float_eval.so
+all : float_eval
+
+float_eval: float_eval.o
+	$(CC) $(CFLAGS) -o $@ $+
 
 %.o : %.c
 	$(CC) $(SPEC_CFLAGS) $(CFLAGS) -c -o $@ $<
 
-float_eval.so : float_eval.o bin_tree.o
-float_eval.o : bin_tree.o float_eval.h
-bin_tree.o : bin_tree.h
+float_eval.o : float_eval.h
 
 clean :
 	rm -f *.o core.*
