@@ -237,6 +237,28 @@ static char* tokenify(char** str, int* type, int* parenthesis)
              **str == '.')
             (*str)++;
     }
+    else if (*type == FLOAT_EVAL_OP) {
+        switch (op) {
+            case '<':   // <=  (or << with fallthrough)
+            case '>':   // >=  (or >> with fallthrough)
+                if (**str == '=') {
+                    (*str)++;
+                    break;
+                }
+                /* FALLTHROUGH */
+            case '|':   // ||
+            case '&':   // &&
+            case '=':   // ==
+            case '*':   // **
+                if (**str == op)
+                    (*str)++;
+                break;
+            case '!':   // !=
+                if (**str == '=')
+                    (*str)++;
+                break;
+        }
+    }
 
     // lenght of result is lenght of the part of the string we want + 1 for final \0
     // + if it's an operator, the depth of parentheses (to remember the priority)
