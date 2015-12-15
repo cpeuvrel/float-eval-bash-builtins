@@ -202,7 +202,7 @@ static char* tokenify(char** str, int* type, int* parenthesis)
 
     *type = FLOAT_EVAL_NULL;
 
-    while (**str == '(' || **str == ')') {
+    while (**str == ' ' || **str == '(' || **str == ')') {
         switch (**str) {
             case '(':
                 (*parenthesis)++;
@@ -254,6 +254,11 @@ static char* tokenify(char** str, int* type, int* parenthesis)
 
     while (i < res_len - 1) {
         int aptr = i - offset_parent;
+        if (*(beg + aptr) == ' ') {
+            i++;
+            continue;
+        }
+
         res[j] = *(beg + aptr);
         i++;
         j++;
