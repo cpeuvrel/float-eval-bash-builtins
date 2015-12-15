@@ -26,6 +26,7 @@ static void clear_mpfr(stack_t s);
 static void push(void* val, stack_t* s);
 static void* pop(stack_t* s);
 
+static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static int cmp_op(char* op1, char* op2);
 
 int main(int argc, const char *argv[])
@@ -175,6 +176,42 @@ static void* pop(stack_t* s)
     s->stack[s->pos] = NULL;
 
     return res;
+}
+
+/*
+ * Do what's needed with the new operator got
+ */
+static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
+{
+    char *prev_op;
+    mpfr_t *val1 = NULL, *val2 = NULL;
+    mpfr_t *res;
+
+    // If we have already an operator in the stack
+    // and its priority is above or equal to current operator
+    // pop last 2 values and do the previous operation
+    while (stack_o->pos != 0 &&
+           cmp_op(op, stack_o->stack[stack_o->pos - 1]) >= 0) {
+        res = malloc(sizeof(mpfr_t));
+        mpfr_init2(*res, PRECISION);
+
+        prev_op = pop(stack_o);
+
+        val1 = pop(stack_v);
+
+        val2 = pop(stack_v);
+        calulus(res, *val2, *val1, prev_op);
+        mpfr_clear(*val2);
+        free(val2);
+
+        mpfr_clear(*val1);
+        free(val1);
+        free(prev_op);
+
+        push(res, stack_v);
+    }
+
+    push(op, stack_o);
 }
 
 /*
