@@ -26,6 +26,8 @@ static void clear_mpfr(stack_t s);
 static void push(void* val, stack_t* s);
 static void* pop(stack_t* s);
 
+static char* tokenify(char** str, int* type, int* parenthesis);
+
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static int cmp_op(char* op1, char* op2);
 
@@ -174,6 +176,67 @@ static void* pop(stack_t* s)
     s->pos--;
     res = s->stack[s->pos];
     s->stack[s->pos] = NULL;
+
+    return res;
+}
+
+/*
+ * Take a string and return the next token from it
+ * The sring is set to just after the token at the end of this function
+ *
+ * input:
+ *   * str: a pointer to the string from which we want the next token
+ *
+ * output:
+ *  * type: an integer set to the type of the token (FLOAT_EVAL_TYPES)
+ *  * parenthesis: an integer set to the depth of parentheses
+ *
+ * return: the token itself
+ */
+static char* tokenify(char** str, int* type, int* parenthesis)
+{
+    char *beg;
+    char *res;
+    char op;
+    int i, res_len;
+
+    *type = FLOAT_EVAL_NULL;
+
+    beg = *str;
+
+    if (**str == '\0') {
+        return NULL;
+    }
+
+    if ((**str >= '0' && **str <= '9') ||
+            **str == '.') {
+        *type = FLOAT_EVAL_NUM;
+    }
+    else {
+        *type = FLOAT_EVAL_OP;
+        op = **str;
+    }
+
+    (*str)++;
+
+    // if it's a number, it might be on several chars
+    if (*type == FLOAT_EVAL_NUM) {
+        while ((**str >= '0' && **str <= '9') ||
+             **str == '.')
+            (*str)++;
+    }
+
+    // lenght of result is lenght of the part of the string we want + 1 for final \0
+    res_len = *str - beg + 1;
+
+    res = malloc(res_len * sizeof(char));
+
+    i=0;
+    while (i < res_len - 1) {
+        res[i] = *(beg + aptr);
+        i++;
+    }
+    res[i] = '\0';
 
     return res;
 }
