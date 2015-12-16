@@ -29,7 +29,6 @@ static void print_mpfr_stack(stack_t s);
 #endif
 
 static char* tokenify(char** str, int* type, int* parenthesis);
-static int end_calculus(stack_t* stack_o, stack_t* stack_v);
 
 static int compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static int calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
@@ -186,6 +185,8 @@ void float_eval(mpfr_t *res, char* str)
                     val[0] = '#';
             }
 
+            // val has to be != NULL, otherwise the loop's condition would
+            // have been false.
             if (!compute_op(val, &stack_o, &stack_v))
                 goto feval_token;
         }
@@ -209,7 +210,7 @@ void float_eval(mpfr_t *res, char* str)
     fprintf(stderr, "<<<\n");
 #endif /*  end ifdef DEBUG */
 
-    end_calculus(&stack_o, &stack_v);
+    compute_op(NULL, &stack_o, &stack_v);
 
 #ifdef DEBUG
     fprintf(stderr, ">>> After end_calculus >>>\n");
@@ -452,43 +453,54 @@ static char* tokenify(char** str, int* type, int* parenthesis)
 }
 
 /*
- * Finish the stacks to have the final value
+ * Do what's needed with the new operator got
+ *
+ * If new_op is NULL, we assume it's the last call and we compute the whole stack
  */
-static int end_calculus(stack_t* stack_o, stack_t* stack_v)
+static int compute_op(char* new_op, stack_t* stack_o, stack_t* stack_v)
 {
     char *op;
     mpfr_t *res;
     mpfr_t *val1, *val2;
     int unary;
 
-    if (stack_o->pos == 0)
-        goto endclc_clean1;
+    // If new_op is empty we should be on the last call
+    // If the operator stack is already empty, no need to go further
+    if (!new_op && stack_o->pos == 0)
+        return 1;
 
-    while (stack_o->pos > 0) {
+    // If we have already an operator in the stack
+    // and its priority is above or equal to current operator
+    // pop last 2 values and do the previous operation
+    // OR
+    // it it's the last call (empty new_op), do it until stack is empty
+    while (stack_o->pos != 0 &&
+            (!new_op ||
+              cmp_op(new_op, stack_o->stack[stack_o->pos - 1]) >= 0)) {
         res = malloc(sizeof(mpfr_t));
         mpfr_init2(*res, PRECISION);
 
         op = pop(stack_o);
         if (!op)
-            goto endclc_clean1;
+            goto compute_clean1;
 
         unary = is_unary(op);
 
         val1 = pop(stack_v);
         if (!val1)
-            goto endclc_clean2;
+            goto compute_clean2;
 
         if (unary) {
             if (!calulus_unary(res, val1, op))
-                goto endclc_clean3;
+                goto compute_clean3;
         }
         else {
             val2 = pop(stack_v);
             if (!val2)
-                goto endclc_clean3;
+                goto compute_clean3;
 
             if (!calulus(res, *val2, *val1, op))
-                goto endclc_clean4;
+                goto compute_clean4;
 
             mpfr_clear(*val2);
             free(val2);
@@ -501,79 +513,8 @@ static int end_calculus(stack_t* stack_o, stack_t* stack_v)
         push(res, stack_v);
     }
 
-    return 0;
-
-endclc_clean4:
-    mpfr_clear(*val2);
-    free(val2);
-
-endclc_clean3:
-    mpfr_clear(*val1);
-    free(val1);
-
-endclc_clean2:
-    free(op);
-
-    mpfr_clear(*res);
-    free(res);
-
-endclc_clean1:
-
-    return 0;
-}
-
-/*
- * Do what's needed with the new operator got
- */
-static int compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
-{
-    char *prev_op;
-    mpfr_t *val1 = NULL, *val2 = NULL;
-    mpfr_t *res;
-    int unary;
-
-    // If we have already an operator in the stack
-    // and its priority is above or equal to current operator
-    // pop last 2 values and do the previous operation
-    while (stack_o->pos != 0 &&
-           cmp_op(op, stack_o->stack[stack_o->pos - 1]) >= 0) {
-        res = malloc(sizeof(mpfr_t));
-        mpfr_init2(*res, PRECISION);
-
-        prev_op = pop(stack_o);
-        if (!prev_op)
-            goto compute_clean1;
-
-        unary = is_unary(prev_op);
-
-        val1 = pop(stack_v);
-        if (!val1)
-            goto compute_clean2;
-
-        if (unary) {
-            if (!calulus_unary(res, val1, prev_op))
-                goto compute_clean3;
-        }
-        else {
-            val2 = pop(stack_v);
-            if (!val2)
-                goto compute_clean3;
-
-            if (!calulus(res, *val2, *val1, prev_op))
-                goto compute_clean4;
-
-            mpfr_clear(*val2);
-            free(val2);
-        }
-
-        mpfr_clear(*val1);
-        free(val1);
-        free(prev_op);
-
-        push(res, stack_v);
-    }
-
-    push(op, stack_o);
+    if (new_op)
+        push(new_op, stack_o);
 
     return 1;
 
@@ -586,7 +527,7 @@ compute_clean3:
     free(val1);
 
 compute_clean2:
-    free(prev_op);
+    free(op);
 
     mpfr_clear(*res);
     free(res);
