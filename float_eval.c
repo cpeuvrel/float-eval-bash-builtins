@@ -19,12 +19,14 @@ char* op_prio[16][8] = {
 };
 
 static void init_stack(stack_t* s);
-static void print_stack(stack_t s);
-static void print_mpfr_stack(stack_t s);
 static void clear(stack_t s);
 static void clear_mpfr(stack_t s);
 static void push(void* val, stack_t* s);
 static void* pop(stack_t* s);
+#ifdef DEBUG
+static void print_stack(stack_t s);
+static void print_mpfr_stack(stack_t s);
+#endif
 
 static char* tokenify(char** str, int* type, int* parenthesis);
 static void end_calculus(stack_t* stack_o, stack_t* stack_v);
@@ -208,6 +210,7 @@ static void init_stack(stack_t* s)
     s->stack[0] = NULL;
 }
 
+#ifdef DEBUG
 /*
  * Print the whole stack given
  */
@@ -232,6 +235,7 @@ static void print_mpfr_stack(stack_t s)
         putc('\n', stderr);
     }
 }
+#endif /*  end ifdef DEBUG */
 
 /*
  * Free the memory declared on the heap for the stack given
