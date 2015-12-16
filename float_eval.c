@@ -14,7 +14,7 @@ char* op_prio[16][8] = {
     {"+", "-", ""},
     {"**", "*", "/", "%", ""},
     {"E", "e", ""},
-    {"!", "~", ""},
+    {"#", "_", "!", "~", ""},
     {""}
 };
 
@@ -67,10 +67,11 @@ void float_eval(mpfr_t *res, char* str)
 
     char *val;
     mpfr_t *val_num, *ptr;
-    int type, parenthesis = 0;
+    int type, last_type, parenthesis = 0;
 
     init_stack(&stack_v);
     init_stack(&stack_o);
+    last_type = FLOAT_EVAL_NULL;
 
     while ((val = tokenify(&str, &type, &parenthesis))) {
         if (type == FLOAT_EVAL_NUM) {
@@ -82,8 +83,16 @@ void float_eval(mpfr_t *res, char* str)
             free(val);
         }
         else if (type == FLOAT_EVAL_OP) {
+            if (last_type == FLOAT_EVAL_OP || last_type == FLOAT_EVAL_NULL) {
+                if (strncmp(val, "-", 2) == 0)
+                    val[0] = '_';
+                else if (strncmp(val, "+", 2) == 0)
+                    val[0] = '#';
+            }
+
             compute_op(val, &stack_o, &stack_v);
         }
+        last_type = type;
     }
 
     end_calculus(&stack_o, &stack_v);
