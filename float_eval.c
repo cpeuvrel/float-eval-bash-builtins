@@ -186,7 +186,8 @@ void float_eval(mpfr_t *res, char* str)
                     val[0] = '#';
             }
 
-            compute_op(val, &stack_o, &stack_v);
+            if (!compute_op(val, &stack_o, &stack_v))
+                goto feval_token;
         }
         last_type = type;
 
@@ -220,13 +221,29 @@ void float_eval(mpfr_t *res, char* str)
 #endif /*  end ifdef DEBUG */
 
     ptr = pop(&stack_v);
-    mpfr_set(*res, *ptr, MPFR_RNDN);
+    if (ptr) {
+        mpfr_set(*res, *ptr, MPFR_RNDN);
+        mpfr_clear(*ptr);
+
+        free(ptr);
+    }
+    else {
+        goto feval_fail;
+    }
 
     clear(stack_o);
     clear_mpfr(stack_v);
 
-    mpfr_clear(*ptr);
-    free(ptr);
+    return;
+
+feval_token:
+    free(val);
+
+feval_fail:
+    mpfr_set_nan(*res);
+
+    clear(stack_o);
+    clear_mpfr(stack_v);
 }
 
 /*
