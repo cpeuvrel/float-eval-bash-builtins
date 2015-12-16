@@ -523,6 +523,16 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
             else
                 mpfr_set_zero(*res, 0);
             break;
+        case 'e':
+        case 'E':
+            mpfr_init2(pow, PRECISION);
+            mpfr_set_ui(pow, 10, MPFR_RNDN);
+
+            mpfr_pow(pow, pow, val2, MPFR_RNDN);
+            mpfr_mul(*res, val1, pow, MPFR_RNDN);
+
+            mpfr_clear(pow);
+            break;
     }
 
     mpz_clear(res_int);
