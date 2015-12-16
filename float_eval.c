@@ -31,6 +31,7 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v);
 
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static void calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
+static int is_unary(const char* op);
 static int cmp_op(char* op1, char* op2);
 
 int main(int argc, const char *argv[])
@@ -314,6 +315,7 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v)
     char *op;
     mpfr_t *res;
     mpfr_t *val1, *val2;
+    int unary;
 
     if (stack_o->pos == 0)
         return;
@@ -323,13 +325,19 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v)
         mpfr_init2(*res, PRECISION);
 
         op = pop(stack_o);
+        unary = is_unary(op);
 
         val1 = pop(stack_v);
 
-        val2 = pop(stack_v);
-        calulus(res, *val2, *val1, op);
-        mpfr_clear(*val2);
-        free(val2);
+        if (unary) {
+            calulus_unary(res, val1, op);
+        }
+        else {
+            val2 = pop(stack_v);
+            calulus(res, *val2, *val1, op);
+            mpfr_clear(*val2);
+            free(val2);
+        }
 
         mpfr_clear(*val1);
         free(val1);
@@ -347,6 +355,7 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
     char *prev_op;
     mpfr_t *val1 = NULL, *val2 = NULL;
     mpfr_t *res;
+    int unary;
 
     // If we have already an operator in the stack
     // and its priority is above or equal to current operator
@@ -357,13 +366,19 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
         mpfr_init2(*res, PRECISION);
 
         prev_op = pop(stack_o);
+        unary = is_unary(prev_op);
 
         val1 = pop(stack_v);
 
-        val2 = pop(stack_v);
-        calulus(res, *val2, *val1, prev_op);
-        mpfr_clear(*val2);
-        free(val2);
+        if (unary) {
+            calulus_unary(res, val1, prev_op);
+        }
+        else {
+            val2 = pop(stack_v);
+            calulus(res, *val2, *val1, prev_op);
+            mpfr_clear(*val2);
+            free(val2);
+        }
 
         mpfr_clear(*val1);
         free(val1);
@@ -512,6 +527,20 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
     mpz_clear(res_int);
     mpz_clear(int1);
     mpz_clear(int2);
+}
+
+/*
+ * Is the operator given is unary (instead of binary) ?
+ *
+ * i.e. : is it one of # _ ! ~
+ */
+static int is_unary(const char* op)
+{
+    if (op[1] == '\0' &&
+        (op[0] == '#' || op[0] == '_' || op[0] == '!' || op[0] == '~'))
+        return 1;
+
+    return 0;
 }
 
 /*
