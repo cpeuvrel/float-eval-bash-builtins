@@ -61,7 +61,11 @@ int float_eval_builtin(WORD_LIST *list)
 
     // Parse args
     while (1) {
-        if (strncmp("-p", list->word->word, 3) == 0 ||
+        if (strncmp("--", list->word->word, 3) == 0) {
+            list = list->next;
+            break;
+        }
+        else if (strncmp("-p", list->word->word, 3) == 0 ||
                 strncmp("--precision", list->word->word, 12) == 0) {
             // sets the number of digits to keep after the dot (default: 3)
             end = NULL;
