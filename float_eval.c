@@ -35,6 +35,93 @@ static void calulus_unary(mpfr_t* res, mpfr_t* v, char* op);
 static int is_unary(const char* op);
 static int cmp_op(char* op1, char* op2);
 
+/*
+ * Base for float_eval builtin
+ */
+#ifdef BASH_BUILTIN
+int float_eval_builtin(WORD_LIST *list)
+{
+    char *res = NULL, output_format[17] = "%.3Rf", *end;
+    int i = 0;
+    size_t slot_len;
+    double precision = 3;
+    SHELL_VAR *reply_init;
+    ARRAY *reply;
+    mpfr_t res_mpfr;
+
+    mpfr_init2(res_mpfr, PRECISION);
+
+    // If there is no args, print usage and exit
+    if (!HAS_WORD(list)) {
+        builtin_usage();
+        return EX_USAGE;
+    }
+
+    // Init Bash variables
+    reply_init = make_new_array_variable("REPLY");
+    if (array_p(reply_init) == 0) {
+        builtin_error("Failed to bind array: REPLY");
+        return EXECUTION_FAILURE;
+    }
+    reply = array_cell(reply_init);
+
+    // Parse args
+    for (i = 0; HAS_WORD(list); list = list->next) {
+        if (strncmp("-p", list->word->word, 3) == 0 ||
+                strncmp("--precision", list->word->word, 12) == 0) {
+            // sets the number of digits to keep after the comma (default: 3)
+            end = NULL;
+            precision = strtod(list->next->word->word, &end);
+
+            if (!HAS_WORD(list->next->next) || end[0]) {
+                builtin_error("You must give an integer next to '-p' option");
+                return EXECUTION_FAILURE;
+            }
+
+            snprintf(output_format, 16, "%%.%dRf", (int) precision);
+
+            list = list->next;
+            continue;
+        }
+        else if (strncmp("-h", list->word->word, 3) == 0 ||
+            strncmp("--help", list->word->word, 7) == 0) {
+            builtin_usage();
+            return EX_USAGE;
+        }
+
+        // For each args that aren't an option, we try to parse it as a number
+
+        slot_len = strlen(list->word->word)+2;
+        res = calloc(slot_len, sizeof(char));
+        strncpy(res, list->word->word , slot_len);
+
+        // Be sure that we can put at least the string "nan"
+        if (slot_len < 4)
+            slot_len=4;
+
+        // If syntax is incorect, exit
+        /*if (check_syntax(res))*/
+            /*return EXECUTION_FAILURE;*/
+
+        // Do the magic here
+        float_eval(&res_mpfr, res);
+
+        // Append to Bash array
+        mpfr_snprintf(res, slot_len, output_format, res_mpfr);
+        if(array_insert(reply, i, res) < 0)
+            printf("Insert failed\n");
+
+        i++;
+    }
+
+    // Cleanup
+    mpfr_clear(res_mpfr);
+
+    return EXECUTION_SUCCESS;
+}
+
+#else
+
 int main(int argc, const char *argv[])
 {
     if (argc < 2) {
@@ -58,6 +145,7 @@ int main(int argc, const char *argv[])
 
     return 0;
 }
+#endif /* end of ifdef BASH_BUILTIN */
 
 /*
  * Eval a string writen in infix notation
