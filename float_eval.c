@@ -29,9 +29,9 @@ static void print_mpfr_stack(stack_t s);
 #endif
 
 static char* tokenify(char** str, int* type, int* parenthesis);
-static void end_calculus(stack_t* stack_o, stack_t* stack_v);
+static int end_calculus(stack_t* stack_o, stack_t* stack_v);
 
-static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
+static int compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static int calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
 static int calulus_unary(mpfr_t* res, mpfr_t* v, char* op);
 static int is_unary(const char* op);
@@ -437,7 +437,7 @@ static char* tokenify(char** str, int* type, int* parenthesis)
 /*
  * Finish the stacks to have the final value
  */
-static void end_calculus(stack_t* stack_o, stack_t* stack_v)
+static int end_calculus(stack_t* stack_o, stack_t* stack_v)
 {
     char *op;
     mpfr_t *res;
@@ -445,23 +445,34 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v)
     int unary;
 
     if (stack_o->pos == 0)
-        return;
+        goto endclc_clean1;
 
     while (stack_o->pos > 0) {
         res = malloc(sizeof(mpfr_t));
         mpfr_init2(*res, PRECISION);
 
         op = pop(stack_o);
+        if (!op)
+            goto endclc_clean1;
+
         unary = is_unary(op);
 
         val1 = pop(stack_v);
+        if (!val1)
+            goto endclc_clean2;
 
         if (unary) {
-            calulus_unary(res, val1, op);
+            if (!calulus_unary(res, val1, op))
+                goto endclc_clean3;
         }
         else {
             val2 = pop(stack_v);
-            calulus(res, *val2, *val1, op);
+            if (!val2)
+                goto endclc_clean3;
+
+            if (!calulus(res, *val2, *val1, op))
+                goto endclc_clean4;
+
             mpfr_clear(*val2);
             free(val2);
         }
@@ -472,12 +483,32 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v)
 
         push(res, stack_v);
     }
+
+    return 0;
+
+endclc_clean4:
+    mpfr_clear(*val2);
+    free(val2);
+
+endclc_clean3:
+    mpfr_clear(*val1);
+    free(val1);
+
+endclc_clean2:
+    free(op);
+
+    mpfr_clear(*res);
+    free(res);
+
+endclc_clean1:
+
+    return 0;
 }
 
 /*
  * Do what's needed with the new operator got
  */
-static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
+static int compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
 {
     char *prev_op;
     mpfr_t *val1 = NULL, *val2 = NULL;
@@ -493,16 +524,27 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
         mpfr_init2(*res, PRECISION);
 
         prev_op = pop(stack_o);
+        if (!prev_op)
+            goto compute_clean1;
+
         unary = is_unary(prev_op);
 
         val1 = pop(stack_v);
+        if (!val1)
+            goto compute_clean2;
 
         if (unary) {
-            calulus_unary(res, val1, prev_op);
+            if (!calulus_unary(res, val1, prev_op))
+                goto compute_clean3;
         }
         else {
             val2 = pop(stack_v);
-            calulus(res, *val2, *val1, prev_op);
+            if (!val2)
+                goto compute_clean3;
+
+            if (!calulus(res, *val2, *val1, prev_op))
+                goto compute_clean4;
+
             mpfr_clear(*val2);
             free(val2);
         }
@@ -515,6 +557,26 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
     }
 
     push(op, stack_o);
+
+    return 1;
+
+compute_clean4:
+    mpfr_clear(*val2);
+    free(val2);
+
+compute_clean3:
+    mpfr_clear(*val1);
+    free(val1);
+
+compute_clean2:
+    free(prev_op);
+
+    mpfr_clear(*res);
+    free(res);
+
+compute_clean1:
+
+    return 0;
 }
 
 /*
