@@ -313,6 +313,10 @@ static void* pop(stack_t* s)
 {
     void *res;
 
+    if (s->pos < 1) {
+        return NULL;
+    }
+
     s->pos--;
     res = s->stack[s->pos];
     s->stack[s->pos] = NULL;
