@@ -70,7 +70,7 @@ int float_eval_builtin(WORD_LIST *list)
     for (i = 0; HAS_WORD(list); list = list->next) {
         if (strncmp("-p", list->word->word, 3) == 0 ||
                 strncmp("--precision", list->word->word, 12) == 0) {
-            // sets the number of digits to keep after the comma (default: 3)
+            // sets the number of digits to keep after the dot (default: 3)
             end = NULL;
             precision = strtod(list->next->word->word, &end);
 
@@ -92,7 +92,9 @@ int float_eval_builtin(WORD_LIST *list)
 
         // For each args that aren't an option, we try to parse it as a number
 
-        slot_len = strlen(list->word->word)+2;
+        // Allocate a string of the size of the initial input + 2 (dot + final \0)
+        // + the precision (i.e the number of digits after the dot)
+        slot_len = strlen(list->word->word) + 2 + precision;
         res = calloc(slot_len, sizeof(char));
         strncpy(res, list->word->word , slot_len);
 
