@@ -31,6 +31,7 @@ static void end_calculus(stack_t* stack_o, stack_t* stack_v);
 
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
 static void calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
+static void calulus_unary(mpfr_t* res, mpfr_t* v, char* op);
 static int is_unary(const char* op);
 static int cmp_op(char* op1, char* op2);
 
@@ -527,6 +528,60 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
     mpz_clear(res_int);
     mpz_clear(int1);
     mpz_clear(int2);
+}
+
+/*
+ * Compute the result for the unary operator on the value
+ */
+static void calulus_unary(mpfr_t* res, mpfr_t* val, char* op)
+{
+    int offset = 0;
+
+    mpfr_t zero;
+    mpz_t val_int, res_int;
+
+    mpz_init2(val_int, PRECISION);
+    mpz_init2(res_int, PRECISION);
+
+    mpz_set_si(val_int, mpfr_get_si(*val, MPFR_RNDN));
+
+    while (op[offset] == '(')
+        offset++;
+
+    switch (op[offset]) {
+        case '#':
+            mpfr_init2(zero, PRECISION);
+            mpfr_set_zero(zero, 0);
+
+            mpfr_add(*res, zero, *val, MPFR_RNDN);
+
+            mpfr_clear(zero);
+            break;
+        case '_':
+            mpfr_init2(zero, PRECISION);
+            mpfr_set_zero(zero, 0);
+
+            mpfr_sub(*res, zero, *val, MPFR_RNDN);
+
+            mpfr_clear(zero);
+            break;
+        case '!':
+            if ((mpfr_cmp_si(*val, 0)) == 0)
+                mpfr_set_ui(*res, 1, MPFR_RNDN);
+            else
+                mpfr_set_zero(*res, 0);
+            break;
+        case '~':
+            mpz_com(res_int, val_int);
+            mpfr_set_z(*res, res_int, MPFR_RNDN);
+            break;
+        default:
+            mpfr_set_nan(*res);
+            break;
+    }
+
+    mpz_clear(res_int);
+    mpz_clear(val_int);
 }
 
 /*
