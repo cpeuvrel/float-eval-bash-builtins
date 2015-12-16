@@ -43,7 +43,8 @@ static int cmp_op(char* op1, char* op2);
 int float_eval_builtin(WORD_LIST *list)
 {
     char *res = NULL, output_format[17] = "%.3Rf", *end;
-    int i = 0;
+    char *arr_name = NULL;
+    int i = 0, aname_len;
     size_t slot_len;
     double precision = 3;
     SHELL_VAR *reply_init;
@@ -58,16 +59,8 @@ int float_eval_builtin(WORD_LIST *list)
         return EX_USAGE;
     }
 
-    // Init Bash variables
-    reply_init = make_new_array_variable("REPLY");
-    if (array_p(reply_init) == 0) {
-        builtin_error("Failed to bind array: REPLY");
-        return EXECUTION_FAILURE;
-    }
-    reply = array_cell(reply_init);
-
     // Parse args
-    for (i = 0; HAS_WORD(list); list = list->next) {
+    while (1) {
         if (strncmp("-p", list->word->word, 3) == 0 ||
                 strncmp("--precision", list->word->word, 12) == 0) {
             // sets the number of digits to keep after the dot (default: 3)
@@ -80,18 +73,60 @@ int float_eval_builtin(WORD_LIST *list)
             }
 
             snprintf(output_format, 16, "%%.%dRf", (int) precision);
-
             list = list->next;
-            continue;
+        }
+        else if (strncmp("-n", list->word->word, 3) == 0 ||
+                strncmp("--array-name", list->word->word, 13) == 0) {
+
+            if (arr_name) {
+                builtin_error("You must give '-n' option only once");
+                return EXECUTION_FAILURE;
+            }
+
+            if (!HAS_WORD(list->next->next)) {
+                builtin_error("You must give a string next to '-n' option");
+                return EXECUTION_FAILURE;
+            }
+            list = list->next;
+
+            aname_len = strlen(list->word->word);
+
+            if (aname_len >= FLOAT_EVAL_MAX_ANAME) {
+                builtin_error("The name given is too long");
+                return EXECUTION_FAILURE;
+            }
+
+            arr_name = malloc((aname_len+1) * sizeof(char));
+
+            snprintf(arr_name, aname_len+1, "%s", list->word->word);
         }
         else if (strncmp("-h", list->word->word, 3) == 0 ||
             strncmp("--help", list->word->word, 7) == 0) {
             builtin_usage();
             return EX_USAGE;
         }
+        else {
+            break;
+        }
 
-        // For each args that aren't an option, we try to parse it as a number
+        list = list->next;
+    }
 
+    if (!arr_name) {
+        arr_name = malloc(6 * sizeof(char));
+        snprintf(arr_name, 6, "REPLY");
+    }
+
+    // Init Bash variables
+    reply_init = make_new_array_variable(arr_name);
+    if (array_p(reply_init) == 0) {
+        builtin_error("Failed to bind array");
+        return EXECUTION_FAILURE;
+    }
+    reply = array_cell(reply_init);
+
+    // For each args that aren't an option, we try to parse it as a number
+    for (i = 0; HAS_WORD(list); list = list->next) {
         // Allocate a string of the size of the initial input + 2 (dot + final \0)
         // + the precision (i.e the number of digits after the dot)
         slot_len = strlen(list->word->word) + 2 + precision;
@@ -119,6 +154,8 @@ int float_eval_builtin(WORD_LIST *list)
 
     // Cleanup
     mpfr_clear(res_mpfr);
+
+    free(arr_name);
 
     return EXECUTION_SUCCESS;
 }
