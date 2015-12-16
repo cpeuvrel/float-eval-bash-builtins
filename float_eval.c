@@ -32,8 +32,8 @@ static char* tokenify(char** str, int* type, int* parenthesis);
 static void end_calculus(stack_t* stack_o, stack_t* stack_v);
 
 static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v);
-static void calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
-static void calulus_unary(mpfr_t* res, mpfr_t* v, char* op);
+static int calulus(mpfr_t* res, mpfr_t v1, mpfr_t v2, char* op);
+static int calulus_unary(mpfr_t* res, mpfr_t* v, char* op);
 static int is_unary(const char* op);
 static int cmp_op(char* op1, char* op2);
 
@@ -520,9 +520,9 @@ static void compute_op(char* op, stack_t* stack_o, stack_t* stack_v)
 /*
  * Compute the result for the binary operator on the values
  */
-static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
+static int calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
 {
-    int offset = 0, exp;
+    int offset = 0, exp, ret = 1;
     mpfr_t pow;
 
     mpz_t int1, int2, res_int;
@@ -659,19 +659,25 @@ static void calulus(mpfr_t* res, mpfr_t val1, mpfr_t val2, char* op)
 
             mpfr_clear(pow);
             break;
+        default:
+            mpfr_set_nan(*res);
+            ret = 0;
+            break;
     }
 
     mpz_clear(res_int);
     mpz_clear(int1);
     mpz_clear(int2);
+
+    return ret;
 }
 
 /*
  * Compute the result for the unary operator on the value
  */
-static void calulus_unary(mpfr_t* res, mpfr_t* val, char* op)
+static int calulus_unary(mpfr_t* res, mpfr_t* val, char* op)
 {
-    int offset = 0;
+    int offset = 0, ret = 1;
 
     mpfr_t zero;
     mpz_t val_int, res_int;
@@ -713,11 +719,14 @@ static void calulus_unary(mpfr_t* res, mpfr_t* val, char* op)
             break;
         default:
             mpfr_set_nan(*res);
+            ret = 0;
             break;
     }
 
     mpz_clear(res_int);
     mpz_clear(val_int);
+
+    return ret;
 }
 
 /*
