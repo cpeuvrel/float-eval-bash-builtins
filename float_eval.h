@@ -35,7 +35,7 @@ enum FLOAT_EVAL_TYPES{
     FLOAT_EVAL_PARENT,
 };
 
-void float_eval(mpfr_t* res, char* str);
+int float_eval(mpfr_t* res, char* str);
 
 #ifdef BASH_BUILTIN
 int float_eval_builtin(WORD_LIST *list);

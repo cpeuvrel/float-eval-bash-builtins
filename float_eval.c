@@ -153,7 +153,7 @@ int main(int argc, const char *argv[])
 /*
  * Eval a string writen in infix notation
  */
-void float_eval(mpfr_t *res, char* str)
+int float_eval(mpfr_t *res, char* str)
 {
     stack_t stack_v;     // Stack with all values
     stack_t stack_o;     // Stack with operators
@@ -237,7 +237,7 @@ void float_eval(mpfr_t *res, char* str)
     clear(stack_o);
     clear_mpfr(stack_v);
 
-    return;
+    return 1;
 
 feval_token:
     free(val);
@@ -247,6 +247,8 @@ feval_fail:
 
     clear(stack_o);
     clear_mpfr(stack_v);
+
+    return 0;
 }
 
 /*
