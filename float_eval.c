@@ -166,6 +166,10 @@ void float_eval(mpfr_t *res, char* str)
     last_type = FLOAT_EVAL_NULL;
 
     while ((val = tokenify(&str, &type, &parenthesis))) {
+#ifdef DEBUG
+        fprintf(stderr, "\n--> %s\n", val);
+#endif /*  end ifdef DEBUG */
+
         if (type == FLOAT_EVAL_NUM) {
             val_num = malloc(sizeof(mpfr_t));
             mpfr_init2(*val_num, PRECISION);
@@ -185,9 +189,35 @@ void float_eval(mpfr_t *res, char* str)
             compute_op(val, &stack_o, &stack_v);
         }
         last_type = type;
+
+#ifdef DEBUG
+        fprintf(stderr, "##### VALUES #####\n");
+        print_mpfr_stack(stack_v);
+        fprintf(stderr, "#### OPERATORS ###\n");
+        print_stack(stack_o);
+        fprintf(stderr, "##################\n\n");
+#endif /*  end ifdef DEBUG */
     }
 
+#ifdef DEBUG
+    fprintf(stderr, ">>> Before end_calculus >>>\n");
+        fprintf(stderr, "##### VALUES #####\n");
+    print_mpfr_stack(stack_v);
+        fprintf(stderr, "#### OPERATORS ###\n");
+    print_stack(stack_o);
+    fprintf(stderr, "<<<\n");
+#endif /*  end ifdef DEBUG */
+
     end_calculus(&stack_o, &stack_v);
+
+#ifdef DEBUG
+    fprintf(stderr, ">>> After end_calculus >>>\n");
+        fprintf(stderr, "##### VALUES #####\n");
+    print_mpfr_stack(stack_v);
+        fprintf(stderr, "#### OPERATORS ###\n");
+    print_stack(stack_o);
+    fprintf(stderr, "<<<\n");
+#endif /*  end ifdef DEBUG */
 
     ptr = pop(&stack_v);
     mpfr_set(*res, *ptr, MPFR_RNDN);
