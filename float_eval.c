@@ -181,8 +181,8 @@ int main(int argc, const char *argv[])
     float_eval(&val, str);
     free(str);
 
-    mpfr_out_str(stderr, 10, 3, val, MPFR_RNDN);
-    putc('\n', stderr);
+    mpfr_out_str(stdout, 10, 3, val, MPFR_RNDN);
+    putc('\n', stdout);
 
     // Cleanup
     mpfr_clear(val);
