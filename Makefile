@@ -33,6 +33,9 @@ float_eval: float_eval.o
 float_eval.so : float_eval.o
 float_eval.o : float_eval.h
 
+test: mrproper float_eval.so
+	./test.sh
+
 clean :
 	rm -f *.o core.*
 
