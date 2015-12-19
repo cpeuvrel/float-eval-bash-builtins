@@ -28,6 +28,7 @@ You can use every common operations :
   - Exponentiation (pow) `**`
   - Set wanted precision (-p INTEGER)
   - Scientific notation `1.00E+003`
+  - Error handling: On invalid input, the binary/builtin return 1
   - Long input lines (dynamically allocated)
   - Numbers are coded on 256 bits using the MPFR library (<http://www.mpfr.org/>)
   
@@ -39,7 +40,6 @@ You can look `test.sh` to see all operations and their combinaisons that are kno
   
 # Not yet supported
   - Syntax check
-  - Error handling
   
 # Benchmarks
 You can do a simple benchmark by executing `./test.sh` (it will also check that the builtin's behavior is as expected).
