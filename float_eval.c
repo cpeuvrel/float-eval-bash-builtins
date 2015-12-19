@@ -44,7 +44,7 @@ int float_eval_builtin(WORD_LIST *list)
 {
     char *res = NULL, output_format[17] = "%.3Rf", *end;
     char *arr_name = NULL;
-    int i = 0, aname_len;
+    int i = 0, aname_len, ret;
     size_t slot_len;
     double precision = 3;
     SHELL_VAR *reply_init;
@@ -129,6 +129,8 @@ int float_eval_builtin(WORD_LIST *list)
     }
     reply = array_cell(reply_init);
 
+    ret = 1;
+
     // For each args that aren't an option, we try to parse it as a number
     for (i = 0; HAS_WORD(list); list = list->next) {
         // Allocate a string of the size of the initial input + 2 (dot + final \0)
@@ -146,7 +148,8 @@ int float_eval_builtin(WORD_LIST *list)
             /*return EXECUTION_FAILURE;*/
 
         // Do the magic here
-        float_eval(&res_mpfr, res);
+        if (!float_eval(&res_mpfr, res))
+            ret = 0;
 
         // Append to Bash array
         mpfr_snprintf(res, slot_len, output_format, res_mpfr);
@@ -161,7 +164,7 @@ int float_eval_builtin(WORD_LIST *list)
 
     free(arr_name);
 
-    return EXECUTION_SUCCESS;
+    return ret == 1 ? EXECUTION_SUCCESS : EXECUTION_FAILURE;
 }
 
 #else
