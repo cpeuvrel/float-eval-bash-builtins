@@ -175,10 +175,11 @@ int main(int argc, const char *argv[])
 
     mpfr_t val;
     char *str = strdup(argv[1]);
+    int ret;
 
     mpfr_init2(val, PRECISION);
 
-    float_eval(&val, str);
+    ret = float_eval(&val, str);
     free(str);
 
     mpfr_out_str(stdout, 10, 3, val, MPFR_RNDN);
@@ -187,7 +188,8 @@ int main(int argc, const char *argv[])
     // Cleanup
     mpfr_clear(val);
 
-    return 0;
+    // Shell return code is the contrary of C
+    return !ret;
 }
 #endif /* end of ifdef BASH_BUILTIN */
 
