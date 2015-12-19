@@ -206,7 +206,7 @@ int float_eval(mpfr_t *res, char* str)
 
     char *val;
     mpfr_t *val_num, *ptr;
-    int type, last_type, parenthesis = 0;
+    int type, last_type, parenthesis = 0, tok_len;
 
     init_stack(&stack_v);
     init_stack(&stack_o);
@@ -227,10 +227,11 @@ int float_eval(mpfr_t *res, char* str)
         }
         else if (type == FLOAT_EVAL_OP) {
             if (last_type == FLOAT_EVAL_OP || last_type == FLOAT_EVAL_NULL) {
-                if (strncmp(val, "-", 2) == 0)
-                    val[0] = '_';
-                else if (strncmp(val, "+", 2) == 0)
-                    val[0] = '#';
+                tok_len = strlen(val);
+                if (val[tok_len-1] == '-')
+                    val[tok_len-1] = '_';
+                else if (val[tok_len-1] == '+')
+                    val[tok_len-1] = '#';
             }
 
             // val has to be != NULL, otherwise the loop's condition would
@@ -806,8 +807,13 @@ static int calulus_unary(mpfr_t* res, mpfr_t* val, char* op)
  */
 static int is_unary(const char* op)
 {
-    if (op[1] == '\0' &&
-        (op[0] == '#' || op[0] == '_' || op[0] == '!' || op[0] == '~'))
+    int pos = 0;
+
+    while (op[pos] == '(')
+        pos++;
+
+    if (op[pos+1] == '\0' &&
+        (op[pos] == '#' || op[pos] == '_' || op[pos] == '!' || op[pos] == '~'))
         return 1;
 
     return 0;
