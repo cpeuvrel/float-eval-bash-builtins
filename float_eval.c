@@ -42,7 +42,7 @@ static int cmp_op(char* op1, char* op2);
 #ifdef BASH_BUILTIN
 int float_eval_builtin(WORD_LIST *list)
 {
-    char *res = NULL, output_format[17] = "%.3Rf", *end;
+    char output_format[17] = "%.3Rf", *end;
     char *arr_name = NULL;
     int i = 0, aname_len, ret;
     size_t slot_len;
@@ -135,25 +135,23 @@ int float_eval_builtin(WORD_LIST *list)
     for (i = 0; HAS_WORD(list); list = list->next) {
         // Allocate a string of the size of the initial input + 2 (dot + final \0)
         // + the precision (i.e the number of digits after the dot)
-        slot_len = strlen(list->word->word) + 2 + precision;
-        res = calloc(slot_len, sizeof(char));
-        strncpy(res, list->word->word , slot_len);
 
         // Be sure that we can put at least the string "nan"
         if (slot_len < 4)
-            slot_len=4;
+            slot_len = 4;
 
         // If syntax is incorect, exit
         /*if (check_syntax(res))*/
             /*return EXECUTION_FAILURE;*/
 
         // Do the magic here
-        if (!float_eval(&res_mpfr, res))
+        if (!float_eval(res_mpfr, list->word->word))
             ret = 0;
 
+        char *retval = NULL;
         // Append to Bash array
-        mpfr_snprintf(res, slot_len, output_format, res_mpfr);
-        if(array_insert(reply, i, res) < 0)
+        mpfr_asprintf(&retval, output_format, res_mpfr);
+        if(array_insert(reply, i, retval) < 0)
             printf("Insert failed\n");
 
         i++;
@@ -182,7 +180,7 @@ int main(int argc, const char *argv[])
 
     mpfr_init2(val, PRECISION);
 
-    ret = float_eval(&val, str);
+    ret = float_eval(val, str);
     free(str);
 
     mpfr_out_str(stdout, 10, 3, val, MPFR_RNDN);
@@ -199,7 +197,7 @@ int main(int argc, const char *argv[])
 /*
  * Eval a string writen in infix notation
  */
-int float_eval(mpfr_t *res, char* str)
+int float_eval(mpfr_t res, char* str)
 {
     stack_t stack_v;     // Stack with all values
     stack_t stack_o;     // Stack with operators
@@ -272,7 +270,7 @@ int float_eval(mpfr_t *res, char* str)
 
     ptr = pop(&stack_v);
     if (ptr) {
-        mpfr_set(*res, *ptr, MPFR_RNDN);
+        mpfr_set(res, *ptr, MPFR_RNDN);
         mpfr_clear(*ptr);
 
         free(ptr);
@@ -290,7 +288,7 @@ feval_token:
     free(val);
 
 feval_fail:
-    mpfr_set_nan(*res);
+    mpfr_set_nan(res);
 
     clear(stack_o);
     clear_mpfr(stack_v);
